@@ -14,7 +14,7 @@ TEMPLATE = app
 
 #DEFINES += SHOW_DEBUG_OUTPUT
 
-#QMAKE_CXXFLAGS += -WOrder-overload
+QMAKE_CXXFLAGS += -Woverloaded-virtual
 
 # OpenCV dependency
 INCLUDEPATH += /usr/local/include/
@@ -35,7 +35,8 @@ SOURCES += main.cpp\
 		mainwindow.cpp \
 	stereocamera.cpp
 
-HEADERS  += api_keys.h mainwindow.h stereocamera.h image_output.h
+HEADERS  += api_keys.h mainwindow.h stereocamera.h image_output.h \
+    utils.h
 
 FORMS    += mainwindow.ui
 

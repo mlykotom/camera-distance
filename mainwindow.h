@@ -4,11 +4,13 @@
 #include <QMainWindow>
 #include <QDesktopWidget>
 #include <QtWidgets>
+
 #include <opencv2/opencv.hpp>
 #include "DUOLib.h"
 #include "Dense3DMT.h"
 #include "api_keys.h"
 #include "image_output.h"
+#include "stereocamera.h"
 
 using namespace cv;
 
@@ -27,8 +29,9 @@ public:
 
 private:
     Ui::MainWindow *ui;
+    Mat colorLut;
 
-    static void CALLBACK newFrameCb(const PDense3DFrame pFrameData, void *pUserData){
+    static void CALLBACK newFrameCallback(const PDense3DFrame pFrameData, void *pUserData){
         ((MainWindow *)pUserData)->onNewFrame(pFrameData);
     }
 

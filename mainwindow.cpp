@@ -1,5 +1,6 @@
 #include "mainwindow.h"
 #include "ui_mainwindow.h"
+#include "utils.h"
 
 #define WIDTH 320
 #define HEIGHT 240
@@ -20,8 +21,12 @@ MainWindow::MainWindow(QWidget *parent) :
        hs->addWidget(_img[2] = new ImageOutput());
        setCentralWidget(hs);
 
+//       StereoCamera camera = new StereoCamera(WIDTH, HEIGHT, FPS);
 
-    DUOResolutionInfo ri;
+       this->colorLut = Mat(cv::Size(256, 1), CV_8UC3);
+       prepareColorLut(&colorLut);
+
+      DUOResolutionInfo ri;
       if(EnumerateResolutions(&ri, 1, WIDTH, HEIGHT, DUO_BIN_HORIZONTAL2 + DUO_BIN_VERTICAL2, FPS))
       {
           printf("[%dx%d], [%f-%f], %f, [%d]", ri.width, ri.height, ri.minFps, ri.maxFps, ri.fps, ri.binning);
@@ -33,14 +38,13 @@ MainWindow::MainWindow(QWidget *parent) :
 
           char buf[256];
           GetDUOSerialNumber(_duo, buf);
-          printf("Serial Number: %s", buf);
+          qDebug() << "Serial Number: " << buf;
           GetDUOFirmwareVersion(_duo, buf);
-          printf("Firmware Version: v%s", buf);
+          qDebug() << "Firmware Version: v" << buf;
           GetDUOFirmwareBuild(_duo, buf);
-          printf("Firmware Build Time: %s", buf);
-          printf("Library Version: v%s", GetLibVersion());
-          printf("Dense3DMT Version:    v%s\n", Dense3DGetLibVersion());
-          printf("-------------------------------------------------");
+          qDebug() << "Firmware Build Time: " << buf;
+          qDebug() << "Library Version: v" << GetLibVersion();
+          qDebug() << "Dense3DMT Version: v" << Dense3DGetLibVersion();
 
           // Open Dense3D
           if (!Dense3DOpen(&_dense, _duo)) {
@@ -68,7 +72,7 @@ MainWindow::MainWindow(QWidget *parent) :
           // Set Dense3D parameters
           Dense3DParams params;
           params.scale = 0;
-          params.mode = 3;
+          params.mode = 0;
           params.numDisparities = 2;
           params.sadWindowSize = 6;
           params.preFilterCap = 28;
@@ -82,7 +86,8 @@ MainWindow::MainWindow(QWidget *parent) :
               close(); // TODO
           }
 
-          Dense3DStart(_dense, newFrameCb, this);
+          // setup callback
+          Dense3DStart(_dense, newFrameCallback, this);
 
           SetDUOResolutionInfo(_duo, ri);
           uint32_t w, h;
@@ -98,78 +103,27 @@ MainWindow::MainWindow(QWidget *parent) :
   }
 
 
-//Vec3b HSV2RGB(float hue, float sat, float val) {
-//    float x, y, z;
-
-//    if (hue == 1) hue = 0;
-//    else hue *= 6;
-
-//    int i = (int) floorf(hue);
-//    float f = hue - i;
-//    float p = val * (1 - sat);
-//    float q = val * (1 - (sat * f));
-//    float t = val * (1 - (sat * (1 - f)));
-
-//    switch (i) {
-//        case 0:
-//            x = val;
-//            y = t;
-//            z = p;
-//            break;
-//        case 1:
-//            x = q;
-//            y = val;
-//            z = p;
-//            break;
-//        case 2:
-//            x = p;
-//            y = val;
-//            z = t;
-//            break;
-//        case 3:
-//            x = p;
-//            y = q;
-//            z = val;
-//            break;
-//        case 4:
-//            x = t;
-//            y = p;
-//            z = val;
-//            break;
-//        case 5:
-//            x = val;
-//            y = p;
-//            z = q;
-//            break;
-//        default:
-//            return Vec3b(0, 0, 0);
-//    }
-//    return Vec3b((uchar) (x * 255), (uchar) (y * 255), (uchar) (z * 255));
-//}
-
-//void prepareColorLut(Mat *colorLut) {
-//    for (int i = 0; i < 256; i++) {
-//        colorLut->at<Vec3b>(i) = i == 0 ? Vec3b(0, 0, 0) : HSV2RGB(i / 256.0f, 1, 1);
-//    }
-//}
-
-//Mat colorLut = Mat(cv::Size(256, 1), CV_8UC3);
-//prepareColorLut(&colorLut);
-
 void MainWindow::onNewFrame(const PDense3DFrame pFrameData){
+    Frame3D frame;
     Size frameSize(pFrameData->duoFrame->width,pFrameData->duoFrame->height);
+    frame.leftImg = cv::Mat(frameSize, CV_8U, pFrameData->duoFrame->leftData);
+    frame.rightImg = cv::Mat(frameSize, CV_8U, pFrameData->duoFrame->rightData);
+    frame.disparity = cv::Mat(frameSize, CV_32F, pFrameData->disparityData);
+    frame.depth = cv::Mat(frameSize, CV_32FC3, pFrameData->depthData);
 
-    Mat left(frameSize, CV_8UC1, pFrameData->duoFrame->leftData);
-    Mat right(frameSize, CV_8UC1, pFrameData->duoFrame->rightData);
-    Mat depth(frameSize, CV_32FC3, pFrameData->depthData);
-
-    cvtColor(left, _leftRGB, COLOR_GRAY2BGR);
-    cvtColor(right, _rightRGB, COLOR_GRAY2BGR);
-//    cvtColor(depth, _depthRGB, COLOR_GRAY2BGR);
-
+    cvtColor(frame.leftImg, _leftRGB, COLOR_GRAY2BGR);
     Q_EMIT _img[0]->setImage(_leftRGB);
+
+    cvtColor(frame.rightImg, _rightRGB, COLOR_GRAY2BGR);
     Q_EMIT _img[1]->setImage(_rightRGB);
-//    Q_EMIT _img[2]->setImage(depth);
+
+    Mat disp8;
+    frame.disparity.convertTo(disp8, CV_8UC1, 255.0/(2*16)); //params.numDisparities instead of 2
+    Mat rgbBDisparity;
+    cvtColor(disp8, rgbBDisparity, COLOR_GRAY2BGR);
+    cv::LUT(rgbBDisparity, colorLut, rgbBDisparity);
+
+    Q_EMIT _img[2]->setImage(rgbBDisparity);
 }
 
 MainWindow::~MainWindow()

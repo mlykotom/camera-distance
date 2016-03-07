@@ -32,10 +32,10 @@ LIBS += -L$$PWD/SDK/osx/x64/ \
 		-lDense3DMT
 
 SOURCES += main.cpp\
-		mainwindow.cpp
+		mainwindow.cpp \
+	stereocamera.cpp
 
-HEADERS  += mainwindow.h \
-    api_keys.h
+HEADERS  += api_keys.h mainwindow.h stereocamera.h image_output.h
 
 FORMS    += mainwindow.ui
 

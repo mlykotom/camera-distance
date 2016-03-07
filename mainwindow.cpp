@@ -97,6 +97,65 @@ MainWindow::MainWindow(QWidget *parent) :
       }
   }
 
+
+//Vec3b HSV2RGB(float hue, float sat, float val) {
+//    float x, y, z;
+
+//    if (hue == 1) hue = 0;
+//    else hue *= 6;
+
+//    int i = (int) floorf(hue);
+//    float f = hue - i;
+//    float p = val * (1 - sat);
+//    float q = val * (1 - (sat * f));
+//    float t = val * (1 - (sat * (1 - f)));
+
+//    switch (i) {
+//        case 0:
+//            x = val;
+//            y = t;
+//            z = p;
+//            break;
+//        case 1:
+//            x = q;
+//            y = val;
+//            z = p;
+//            break;
+//        case 2:
+//            x = p;
+//            y = val;
+//            z = t;
+//            break;
+//        case 3:
+//            x = p;
+//            y = q;
+//            z = val;
+//            break;
+//        case 4:
+//            x = t;
+//            y = p;
+//            z = val;
+//            break;
+//        case 5:
+//            x = val;
+//            y = p;
+//            z = q;
+//            break;
+//        default:
+//            return Vec3b(0, 0, 0);
+//    }
+//    return Vec3b((uchar) (x * 255), (uchar) (y * 255), (uchar) (z * 255));
+//}
+
+//void prepareColorLut(Mat *colorLut) {
+//    for (int i = 0; i < 256; i++) {
+//        colorLut->at<Vec3b>(i) = i == 0 ? Vec3b(0, 0, 0) : HSV2RGB(i / 256.0f, 1, 1);
+//    }
+//}
+
+//Mat colorLut = Mat(cv::Size(256, 1), CV_8UC3);
+//prepareColorLut(&colorLut);
+
 void MainWindow::onNewFrame(const PDense3DFrame pFrameData){
     Size frameSize(pFrameData->duoFrame->width,pFrameData->duoFrame->height);
 
@@ -106,10 +165,11 @@ void MainWindow::onNewFrame(const PDense3DFrame pFrameData){
 
     cvtColor(left, _leftRGB, COLOR_GRAY2BGR);
     cvtColor(right, _rightRGB, COLOR_GRAY2BGR);
+//    cvtColor(depth, _depthRGB, COLOR_GRAY2BGR);
 
     Q_EMIT _img[0]->setImage(_leftRGB);
     Q_EMIT _img[1]->setImage(_rightRGB);
-    Q_EMIT _img[2]->setImage(depth);
+//    Q_EMIT _img[2]->setImage(depth);
 }
 
 MainWindow::~MainWindow()

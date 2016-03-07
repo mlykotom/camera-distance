@@ -6,8 +6,10 @@
 #include <QtWidgets>
 #include <QPaintEngine>
 #include <QPaintEvent>
-#include "DUOLib.h"
 #include <opencv2/opencv.hpp>
+#include "DUOLib.h"
+#include "Dense3DMT.h"
+#include "api_keys.h"
 
 using namespace cv;
 
@@ -53,21 +55,22 @@ class MainWindow : public QMainWindow
 public:
     explicit MainWindow(QWidget *parent = 0);
     ~MainWindow();
-//    void closeEvent(QCloseEvent *);
+    void closeEvent(QCloseEvent *);
 
 private:
     Ui::MainWindow *ui;
 
-    static void CALLBACK newFrameCb(const PDUOFrame pFrameData, void *pUserData){
+    static void CALLBACK newFrameCb(const PDense3DFrame pFrameData, void *pUserData){
         ((MainWindow *)pUserData)->onNewFrame(pFrameData);
     }
 
-    void onNewFrame(const PDUOFrame pFrameData);
+    void onNewFrame(const PDense3DFrame pFrameData);
 
 private:
     DUOInstance _duo;
-    ImageOutput *_img[2];
-    cv::Mat _leftRGB, _rightRGB;
+    Dense3DMTInstance _dense;
+    ImageOutput *_img[3];
+    cv::Mat _leftRGB, _rightRGB, _disparityRGB;
 };
 
 #endif // MAINWINDOW_H

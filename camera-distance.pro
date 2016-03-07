@@ -34,7 +34,8 @@ LIBS += -L$$PWD/SDK/osx/x64/ \
 SOURCES += main.cpp\
 		mainwindow.cpp
 
-HEADERS  += mainwindow.h
+HEADERS  += mainwindow.h \
+    api_keys.h
 
 FORMS    += mainwindow.ui
 

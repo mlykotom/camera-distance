@@ -7,7 +7,7 @@
 #include <stdexcept>
 #include <QDebug>
 
-struct Frame3D {
+struct D3DFrame {
     cv::Mat leftImg, rightImg;
     cv::Mat disparity;
     cv::Mat depth;
@@ -76,8 +76,8 @@ public:
     // TODO
     void setParams(){
         params.scale = 0;
-        params.mode = 0;
-        params.numDisparities = 20;
+        params.mode = 3;
+        params.numDisparities = 2;
         params.sadWindowSize = 6;
         params.preFilterCap = 28;
         params.uniqenessRatio = 27;
@@ -93,11 +93,16 @@ public:
         GetDUOFrameDimension(duo, &w, &h);
         qDebug() << "Frame Dimension: [" << w << "," << h << "]";
 
-        SetDUOUndistort(duo,false);
-        SetDUOLedPWM(duo, 80);
-        SetDUOGain(duo, 50);
-        SetDUOExposure(duo, 50);
+        // Set exposure, LED brightness and camera orientation
+        SetDUOExposure(duo, 40);
+        SetDUOLedPWM(duo, 50);
+        SetDUOGain(duo, 30);
         SetDUOVFlip(duo, false);
+        SetDUOUndistort(duo, false);
+    }
+
+    Dense3DParams getParams(){
+        return params;
     }
 
     void start(Dense3DFrameCallback callback, void *userData){

@@ -5,6 +5,9 @@
 #include <QDesktopWidget>
 #include <QtWidgets>
 
+#include <queue>
+#include <mutex>
+#include <stdexcept>
 #include <opencv2/opencv.hpp>
 #include "DUOLib.h"
 #include "Dense3DMT.h"

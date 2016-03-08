@@ -4,6 +4,8 @@
 #include "DUOLib.h"
 #include "Dense3DMT.h"
 #include <opencv2/opencv.hpp>
+#include <stdexcept>
+#include <QDebug>
 
 struct Frame3D {
     cv::Mat leftImg, rightImg;
@@ -25,13 +27,76 @@ private:
     unsigned exposure;
     unsigned led;
 
+    DUOResolutionInfo resolutionInfo;
+    Dense3DParams params;
 public:
-    StereoCamera(unsigned width, unsigned height, unsigned fps);
-    ~StereoCamera();
+    StereoCamera(unsigned initWidth, unsigned initHeight, unsigned initFps, const std::string license):
+        width(initWidth), height(initHeight), fps(initFps)
+    {
+        if(!EnumerateResolutions(&resolutionInfo, 1, width, height, DUO_BIN_HORIZONTAL2 + DUO_BIN_VERTICAL2, fps)){
+            throw new std::invalid_argument("Could not enumerate resolutions");
+        }
 
-//    bool open(){
-//        return OpenDUO(duo);
-//    }
+        if(!OpenDUO(&duo)){
+            throw new std::invalid_argument("Could not open DUO camera");
+        }
+
+        if (!Dense3DOpen(&dense, duo)) {
+            throw new std::invalid_argument("Could not open Dense3DMT library");
+        }
+
+        // Set the Dense3D license
+        if (!SetDense3DLicense(dense, license.c_str()))
+        {
+            Dense3DClose(dense);
+            throw new std::invalid_argument("Invalid or missing Dense3D license. To get your license visit https://duo3d.com/account");
+        }
+
+        // Set the image size
+        if (!SetDense3DImageInfo(dense, width, height, fps)) {
+            Dense3DClose(dense);
+            throw new std::invalid_argument("Invalid image size");
+        }
+
+        printInfo();
+    }
+
+    // TODO
+    void setParams(){
+        params.scale = 0;
+        params.mode = 0;
+        params.numDisparities = 20;
+        params.sadWindowSize = 6;
+        params.preFilterCap = 28;
+        params.uniqenessRatio = 27;
+        params.speckleWindowSize = 52;
+        params.speckleRange = 14;
+        if (!SetDense3Params(dense, params)) {
+            Dense3DClose(dense);
+            throw new std::invalid_argument("GetDense3Params error");
+        }
+
+        SetDUOResolutionInfo(duo, resolutionInfo);
+        uint32_t w, h;
+        GetDUOFrameDimension(duo, &w, &h);
+        qDebug() << "Frame Dimension: [" << w << "," << h << "]";
+
+        SetDUOUndistort(duo,false);
+        SetDUOLedPWM(duo, 80);
+        SetDUOGain(duo, 50);
+        SetDUOExposure(duo, 50);
+        SetDUOVFlip(duo, false);
+    }
+
+    void start(Dense3DFrameCallback callback, void *userData){
+        Dense3DStart(dense, callback, userData);
+    }
+
+    ~StereoCamera(){
+        Dense3DStop(dense);
+        Dense3DClose(dense);
+        CloseDUO(duo);
+    }
 
     DUOInstance getCamera(){
         return duo;
@@ -57,6 +122,17 @@ public:
         SetDUOLedPWM(duo, value);
     }
 
+    void printInfo(){
+        char buf[256];
+        GetDUOSerialNumber(duo, buf);
+        qDebug() << "Serial Number: " << buf;
+        GetDUOFirmwareVersion(duo, buf);
+        qDebug() << "Firmware Version: v" << buf;
+        GetDUOFirmwareBuild(duo, buf);
+        qDebug() << "Firmware Build Time: " << buf;
+        qDebug() << "Library Version: v" << GetLibVersion();
+        qDebug() << "Dense3DMT Version: v" << Dense3DGetLibVersion();
+    }
 };
 
 #endif // STEREOCAMERA_H

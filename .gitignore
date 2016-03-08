@@ -38,3 +38,4 @@ CMakeLists.txt.user
 
 /build/*
 /SDK/*
+/api_keys.h

@@ -38,8 +38,7 @@ private:
     void onNewFrame(const PDense3DFrame pFrameData);
 
 private:
-    DUOInstance _duo;
-    Dense3DMTInstance _dense;
+    StereoCamera *camera;
     ImageOutput *_img[3];
     cv::Mat _leftRGB, _rightRGB, _depthRGB;
 };

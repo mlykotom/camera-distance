@@ -33,7 +33,19 @@ public:
     StereoCamera(unsigned initWidth, unsigned initHeight, unsigned initFps, const std::string license):
         width(initWidth), height(initHeight), fps(initFps)
     {
-        if(!EnumerateResolutions(&resolutionInfo, 1, width, height, DUO_BIN_HORIZONTAL2 + DUO_BIN_VERTICAL2, fps)){
+        // Find optimal binning parameters for given (width, height)
+        // This maximizes sensor imaging area for given resolution
+        int binning = DUO_BIN_NONE;
+        if(width <= 752/2)
+            binning += DUO_BIN_HORIZONTAL2;
+        else if(width <= 752/4)
+            binning += DUO_BIN_HORIZONTAL4;
+        if(height <= 480/4)
+            binning += DUO_BIN_VERTICAL4;
+        else if(height <= 480/2)
+            binning += DUO_BIN_VERTICAL2;
+
+        if(!EnumerateResolutions(&resolutionInfo, 1, width, height, binning, fps)){
             throw new std::invalid_argument("Could not enumerate resolutions");
         }
 

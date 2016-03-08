@@ -9,11 +9,6 @@ QT       += core gui widgets
 TARGET = camera-distance
 TEMPLATE = app
 
-#CONFIG += console
-#CONFIG -= app_bundle
-
-#DEFINES += SHOW_DEBUG_OUTPUT
-
 QMAKE_CXXFLAGS_WARN_ON = -Wall -Woverloaded-virtual -Wno-unused-parameter
 
 # OpenCV dependency

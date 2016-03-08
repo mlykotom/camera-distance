@@ -32,7 +32,7 @@ MainWindow::MainWindow(QWidget *parent) :
     catch(std::runtime_error &error){
         qDebug() << error.what();
     }
-  }
+}
 
 
 void MainWindow::onNewFrame(const PDense3DFrame pFrameData){

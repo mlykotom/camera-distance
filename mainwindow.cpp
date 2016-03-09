@@ -37,6 +37,7 @@ MainWindow::MainWindow(QWidget *parent) :
     catch(std::invalid_argument *error){
         qDebug() << error->what();
     }
+
 }
 
 void MainWindow::onNewFrame(const PDense3DFrame pFrameData){

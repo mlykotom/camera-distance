@@ -10,14 +10,18 @@ MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent),
     camera(NULL)
 {
+
     // TODO handle UI with form
-    resize(320*2, 240);
+    resize(WIDTH*3, HEIGHT);
     setWindowTitle("DUO Test");
     setGeometry(QStyle::alignedRect(Qt::LeftToRight, Qt::AlignCenter, size(), qApp->desktop()->availableGeometry()));
     QSplitter *hs = new QSplitter();
     hs->addWidget(_img[0] = new ImageOutput());
     hs->addWidget(_img[1] = new ImageOutput());
     hs->addWidget(_img[2] = new ImageOutput());
+    test = new QLabel();
+
+    hs->addWidget(test);
     setCentralWidget(hs);
 
     colorLut = Mat(cv::Size(256, 1), CV_8UC3);
@@ -25,6 +29,7 @@ MainWindow::MainWindow(QWidget *parent) :
 
     try{
         camera = new StereoCamera(WIDTH, HEIGHT, FPS, LICENSE);
+        camera->open();
         camera->setParams();
         camera->start(newFrameCallback, this);
     }
@@ -34,6 +39,7 @@ MainWindow::MainWindow(QWidget *parent) :
 }
 
 void MainWindow::onNewFrame(const PDense3DFrame pFrameData){
+    try{
     D3DFrame frame;
     Size frameSize(pFrameData->duoFrame->width,pFrameData->duoFrame->height);
     frame.leftImg = cv::Mat(frameSize, CV_8U, pFrameData->duoFrame->leftData);
@@ -41,19 +47,28 @@ void MainWindow::onNewFrame(const PDense3DFrame pFrameData){
     frame.disparity = cv::Mat(frameSize, CV_32F, pFrameData->disparityData);
     frame.depth = cv::Mat(frameSize, CV_32FC3, pFrameData->depthData);
 
+    float depth1 = frame.depth.at<float>(0, 0);
+    float depth2 = frame.depth.at<float>(WIDTH / 2, HEIGHT / 2);
+//    float depth3 = frame.depth.at<float>(WIDTH -1, HEIGHT - 1);
+
+    test->setText(QString::number(depth1) + "|" + QString::number(depth2));
+
     cvtColor(frame.leftImg, _leftRGB, COLOR_GRAY2BGR);
     Q_EMIT _img[0]->setImage(_leftRGB);
 
     cvtColor(frame.rightImg, _rightRGB, COLOR_GRAY2BGR);
     Q_EMIT _img[1]->setImage(_rightRGB);
 
-    Mat disp8;
+    Mat disp8, rgbBDisparity;
     frame.disparity.convertTo(disp8, CV_8UC1, 255.0 / (camera->getParams().numDisparities * 16));
-    Mat rgbBDisparity;
     cv::cvtColor(disp8, rgbBDisparity, COLOR_GRAY2BGR);
     cv::LUT(rgbBDisparity, colorLut, rgbBDisparity);
 
     Q_EMIT _img[2]->setImage(rgbBDisparity);
+    }
+    catch(std::exception & error){
+        qDebug() << error.what();
+    }
 }
 
 MainWindow::~MainWindow()

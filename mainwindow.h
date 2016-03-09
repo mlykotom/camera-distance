@@ -25,25 +25,25 @@ class MainWindow : public QMainWindow
 {
     Q_OBJECT
 
-public:
-    explicit MainWindow(QWidget *parent = 0);
-    ~MainWindow();
-    void closeEvent(QCloseEvent *);
-
 private:
+    StereoCamera *camera;
+    ImageOutput *_img[3];
+    cv::Mat _leftRGB, _rightRGB, _depthRGB;
+    QLabel *test;
     Ui::MainWindow *ui;
     Mat colorLut;
 
+private:
     static void CALLBACK newFrameCallback(const PDense3DFrame pFrameData, void *pUserData){
         ((MainWindow *)pUserData)->onNewFrame(pFrameData);
     }
 
     void onNewFrame(const PDense3DFrame pFrameData);
 
-private:
-    StereoCamera *camera;
-    ImageOutput *_img[3];
-    cv::Mat _leftRGB, _rightRGB, _depthRGB;
+public:
+    explicit MainWindow(QWidget *parent = 0);
+    ~MainWindow();
+    void closeEvent(QCloseEvent *);
 };
 
 #endif // MAINWINDOW_H

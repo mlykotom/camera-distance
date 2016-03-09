@@ -22,16 +22,13 @@ private:
     unsigned width;
     unsigned height;
     unsigned fps;
-
-    unsigned gain;
-    unsigned exposure;
-    unsigned led;
+    std::string license;
 
     DUOResolutionInfo resolutionInfo;
     Dense3DParams params;
 public:
-    StereoCamera(unsigned initWidth, unsigned initHeight, unsigned initFps, const std::string license):
-        width(initWidth), height(initHeight), fps(initFps)
+    StereoCamera(unsigned initWidth, unsigned initHeight, unsigned initFps, const std::string initLicense):
+        width(initWidth), height(initHeight), fps(initFps), license(initLicense)
     {
         // Find optimal binning parameters for given (width, height)
         // This maximizes sensor imaging area for given resolution
@@ -48,7 +45,9 @@ public:
         if(!EnumerateResolutions(&resolutionInfo, 1, width, height, binning, fps)){
             throw new std::invalid_argument("Could not enumerate resolutions");
         }
+    }
 
+    void open(){
         if(!OpenDUO(&duo)){
             throw new std::invalid_argument("Could not open DUO camera");
         }
@@ -69,9 +68,8 @@ public:
             Dense3DClose(dense);
             throw new std::invalid_argument("Invalid image size");
         }
-
-        printInfo();
     }
+
 
     // TODO
     void setParams(){
@@ -95,9 +93,9 @@ public:
 
         // Set exposure, LED brightness and camera orientation
         SetDUOExposure(duo, 40);
-        SetDUOLedPWM(duo, 50);
-        SetDUOGain(duo, 30);
-        SetDUOVFlip(duo, false);
+        SetDUOLedPWM(duo, 40);
+        SetDUOGain(duo, 0);
+        SetDUOVFlip(duo, true);
         SetDUOUndistort(duo, false);
     }
 
@@ -110,9 +108,11 @@ public:
     }
 
     ~StereoCamera(){
-        Dense3DStop(dense);
-        Dense3DClose(dense);
-        CloseDUO(duo);
+        if(duo != NULL) CloseDUO(duo);
+        if(dense != NULL){
+            Dense3DStop(dense);
+            Dense3DClose(dense);
+        }
     }
 
     DUOInstance getCamera(){

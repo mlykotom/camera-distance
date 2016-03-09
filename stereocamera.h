@@ -96,7 +96,7 @@ public:
         SetDUOLedPWM(duo, 40);
         SetDUOGain(duo, 0);
         SetDUOVFlip(duo, true);
-        SetDUOUndistort(duo, false);
+        SetDUOUndistort(duo, true);
     }
 
     Dense3DParams getParams(){

@@ -55,10 +55,10 @@ void MainWindow::onNewFrame(const PDense3DFrame pFrameData){
     test->setText(QString::number(depth1) + "|" + QString::number(depth2));
 
     cvtColor(frame.leftImg, _leftRGB, COLOR_GRAY2BGR);
-    _img[0]->setImage(frame.leftImg);
+    _img[0]->setImage(_leftRGB);
 
     cvtColor(frame.rightImg, _rightRGB, COLOR_GRAY2BGR);
-    _img[1]->setImage(frame.rightImg);
+    _img[1]->setImage(_rightRGB);
 
     Mat disp8, rgbBDisparity;
     frame.disparity.convertTo(disp8, CV_8UC1, 255.0 / (camera->getParams().numDisparities * 16));

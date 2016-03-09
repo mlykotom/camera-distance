@@ -1,0 +1,6 @@
+-------------- ZPO 2016 ---------------------
+----- Mereni vzdalenosti stereokamerou ------
+---------------------------------------------
+- Roman Cizmarik | xcizma04@stud.fit.vutbr.cz
+- Tomas Mlynaric | xmlyna06@stud.fit.vutbr.cz
+---------------------------------------------

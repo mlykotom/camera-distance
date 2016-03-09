@@ -1,6 +1,7 @@
 #include "mainwindow.h"
 #include "ui_mainwindow.h"
 #include "utils.h"
+#include <qfile.h>
 
 #define WIDTH 320
 #define HEIGHT 240
@@ -33,8 +34,8 @@ MainWindow::MainWindow(QWidget *parent) :
         camera->setParams();
         camera->start(newFrameCallback, this);
     }
-    catch(std::invalid_argument &error){
-        qDebug() << error.what();
+    catch(std::invalid_argument *error){
+        qDebug() << error->what();
     }
 }
 
@@ -54,17 +55,16 @@ void MainWindow::onNewFrame(const PDense3DFrame pFrameData){
     test->setText(QString::number(depth1) + "|" + QString::number(depth2));
 
     cvtColor(frame.leftImg, _leftRGB, COLOR_GRAY2BGR);
-    Q_EMIT _img[0]->setImage(_leftRGB);
+    _img[0]->setImage(frame.leftImg);
 
     cvtColor(frame.rightImg, _rightRGB, COLOR_GRAY2BGR);
-    Q_EMIT _img[1]->setImage(_rightRGB);
+    _img[1]->setImage(frame.rightImg);
 
     Mat disp8, rgbBDisparity;
     frame.disparity.convertTo(disp8, CV_8UC1, 255.0 / (camera->getParams().numDisparities * 16));
     cv::cvtColor(disp8, rgbBDisparity, COLOR_GRAY2BGR);
-    cv::LUT(rgbBDisparity, colorLut, rgbBDisparity);
-
-    Q_EMIT _img[2]->setImage(rgbBDisparity);
+//    cv::LUT(rgbBDisparity, colorLut, rgbBDisparity);
+    _img[2]->setImage(rgbBDisparity);
     }
     catch(std::exception & error){
         qDebug() << error.what();

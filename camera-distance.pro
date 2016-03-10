@@ -11,29 +11,48 @@ TEMPLATE = app
 
 CONFIG += c++11
 
-# opencv
-INCLUDEPATH += C:\opencv\build\include
-LIBS += -LC:\opencv\build\x86\vc11\lib \
-        -lopencv_core2412 \
-        -lopencv_highgui2412 \
-        -lopencv_imgproc2412 \
-        -lopencv_features2d2412 \
-        -lopencv_calib3d2412
+win32{
+ OPENCV_INC = C:\opencv\build\include
+ OPENCV_LIBS = -LC:\opencv\build\x86\vc11\lib \
+		-lopencv_core2412 \
+		-lopencv_highgui2412 \
+		-lopencv_imgproc2412 \
+		-lopencv_features2d2412 \
+		-lopencv_calib3d2412
 
+ DUO_INC = C:\Users\Roman\Documents\DUO3D\Developers\SDK\include
+ DUO_LIBS = -LC:\Users\Roman\Documents\DUO3D\Developers\SDK\windows\x86
+}
+macx{
+ OPENCV_INC = /usr/local/include/
+ OPENCV_LIBS = -L/usr/local/lib \
+		-lopencv_core \
+		-lopencv_highgui \
+		-lopencv_imgproc \
+		-lopencv_features2d \
+		-lopencv_calib3d
+
+ DUO_INC = $$PWD/SDK/include
+ DUO_LIBS = -L$$PWD/SDK/osx/x64/
+}
+
+# OpenCV dependency
+INCLUDEPATH += $${OPENCV_INC}
+LIBS += $${OPENCV_LIBS}
 # DUO3D dependency
-INCLUDEPATH +=  C:\Users\Roman\Documents\DUO3D\Developers\SDK\include
-LIBS += -LC:\Users\Roman\Documents\DUO3D\Developers\SDK\windows\x86 \
-                -lDUOLib \
+INCLUDEPATH += $${DUO_INC}
+LIBS += $${DUO_LIBS} \
+		-lDUO \
 		-lDense3DMT
 
 SOURCES += main.cpp\
 		mainwindow.cpp \
 	stereocamera.cpp \
-    image_output.cpp
+	image_output.cpp
 
 HEADERS  += api_keys.h mainwindow.h stereocamera.h image_output.h \
 	utils.h \
-    api_keys.h
+	api_keys.h
 
 FORMS    += mainwindow.ui
 

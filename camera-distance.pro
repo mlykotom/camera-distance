@@ -28,7 +28,8 @@ LIBS += -LC:\Users\Roman\Documents\DUO3D\Developers\SDK\windows\x86 \
 
 SOURCES += main.cpp\
 		mainwindow.cpp \
-	stereocamera.cpp
+	stereocamera.cpp \
+    image_output.cpp
 
 HEADERS  += api_keys.h mainwindow.h stereocamera.h image_output.h \
 	utils.h \

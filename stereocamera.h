@@ -28,8 +28,9 @@ private:
     Dense3DParams params;
 public:
     StereoCamera(unsigned initWidth, unsigned initHeight, unsigned initFps, const std::string initLicense);
+    ~StereoCamera();
 
-    void open();
+    bool open();
 
 
     // TODO
@@ -39,11 +40,12 @@ public:
         return params;
     }
 
+    //prerobit na connect
     void start(Dense3DFrameCallback callback, void *userData){
         Dense3DStart(dense, callback, userData);
     }
 
-    ~StereoCamera();
+
 
     DUOInstance getCamera(){
         return duo;

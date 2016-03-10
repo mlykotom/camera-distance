@@ -21,26 +21,30 @@ StereoCamera::StereoCamera(unsigned initWidth, unsigned initHeight, unsigned ini
     }
 }
 
-void StereoCamera::open(){
+bool StereoCamera::open(){
     if(!OpenDUO(&duo)){
-        throw new std::invalid_argument("Could not open DUO camera");
+        return false;
+      //  throw new std::invalid_argument("Could not open DUO camera");
     }
 
     if (!Dense3DOpen(&dense, duo)) {
-        throw new std::invalid_argument("Could not open Dense3DMT library");
+        return false;
+      //  throw new std::invalid_argument("Could not open Dense3DMT library");
     }
 
     // Set the Dense3D license
     if (!SetDense3DLicense(dense, license.c_str()))
     {
         Dense3DClose(dense);
-        throw new std::invalid_argument("Invalid or missing Dense3D license. To get your license visit https://duo3d.com/account");
+        return false;
+       // throw new std::invalid_argument("Invalid or missing Dense3D license. To get your license visit https://duo3d.com/account");
     }
 
     // Set the image size
     if (!SetDense3DImageInfo(dense, width, height, fps)) {
         Dense3DClose(dense);
-        throw new std::invalid_argument("Invalid image size");
+        return false;
+       // throw new std::invalid_argument("Invalid image size");
     }
 }
 
@@ -67,16 +71,20 @@ void StereoCamera::setParams(){
     SetDUOExposure(duo, 40);
     SetDUOLedPWM(duo, 40);
     SetDUOGain(duo, 0);
-    SetDUOVFlip(duo, true);
-    SetDUOUndistort(duo, false);
+    SetDUOVFlip(duo, false);
+    SetDUOUndistort(duo, true);
 }
 
 StereoCamera::~StereoCamera(){
-    if(duo != NULL) CloseDUO(duo);
-    if(dense != NULL){
-        Dense3DStop(dense);
-        Dense3DClose(dense);
-    }
+//    niekde tu to pada!!!
+//    if(duo != NULL){
+//        StopDUO(duo);
+//        CloseDUO(duo);
+//    }
+//    if(dense != NULL){
+//        Dense3DStop(dense);
+//        Dense3DClose(dense);
+//    }
 }
 
 void StereoCamera::printInfo(){

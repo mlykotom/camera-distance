@@ -5,6 +5,7 @@
 #include <QDesktopWidget>
 #include <QtWidgets>
 
+
 #include <queue>
 #include <stdexcept>
 #include <opencv2/opencv.hpp>
@@ -25,24 +26,28 @@ class MainWindow : public QMainWindow
     Q_OBJECT
 
 private:
-    StereoCamera *camera;
-    ImageOutput *_img[3];
-    cv::Mat _leftRGB, _rightRGB, _depthRGB;
-    QLabel *test;
     Ui::MainWindow *ui;
+    StereoCamera *camera;
+    cv::Mat _leftRGB, _rightRGB, _depthRGB;
     Mat colorLut;
 
-private:
+   // std::queue leftQueue;
+    QVector<cv::Mat> leftQueue;
+    QVector<cv::Mat> rightQueue;
+    QVector<cv::Mat> depthQueue;
+
     static void CALLBACK newFrameCallback(const PDense3DFrame pFrameData, void *pUserData){
         ((MainWindow *)pUserData)->onNewFrame(pFrameData);
     }
 
     void onNewFrame(const PDense3DFrame pFrameData);
 
+
 public:
     explicit MainWindow(QWidget *parent = 0);
     ~MainWindow();
-    void closeEvent(QCloseEvent *);
+
+    void startProjecting();
 };
 
 #endif // MAINWINDOW_H

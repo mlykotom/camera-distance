@@ -10,28 +10,12 @@ class ImageOutput : public QWidget
 {
     Q_OBJECT
 public:
-    ImageOutput()
-    {
-        setMinimumSize(1, 1);
-        _image = QImage(QSize(1,1), QImage::Format_RGB888);
-        _image.fill(Qt::black);
-    }
-public Q_SLOTS:
+    ImageOutput(QWidget* parent = 0);
+public slots:
     // Mat imag must be BGR image
-    void setImage(const cv::Mat3b &image)
-    {
-        QMutexLocker lock(&_mutex); // Lock to assure access
-        _image = QImage(image.data, image.cols, image.rows, QImage::Format_RGB888);
-        update();
-    }
+    void setImage(const cv::Mat3b &image);
 private:
-    void paintEvent(QPaintEvent *event)
-    {
-        QMutexLocker lock(&_mutex);
-        QPainter painter(this);
-        painter.setRenderHint(QPainter::SmoothPixmapTransform, true);
-        painter.drawPixmap(event->rect(), QPixmap::fromImage(_image));
-    }
+    void paintEvent(QPaintEvent *event);
 private:
     QImage _image;
     QMutex _mutex;

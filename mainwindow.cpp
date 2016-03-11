@@ -18,22 +18,15 @@ MainWindow::MainWindow(QWidget *parent) :
     colorLut = Mat(cv::Size(256, 1), CV_8UC3);
     prepareColorLut(&colorLut);
 
-
-
+   try{
     camera = new StereoCamera(WIDTH, HEIGHT, FPS, LICENSE);
+    camera->open();
+    camera->setParams();
+    camera->start(newFrameCallback, this);
 
-    if(camera->open()){
-
-        camera->setParams();
-        camera->start(newFrameCallback, this);
+    } catch(std::invalid_argument * error){
+        QMessageBox::warning(this, "Invalid argument", error->what());
     }
-    else
-        qDebug()<<"Camera not opened!";
-
-    leftQueue.resize(0);
-    rightQueue.resize(0);
-    depthQueue.resize(0);
-
 }
 
 void MainWindow::onNewFrame(const PDense3DFrame pFrameData){
@@ -46,8 +39,8 @@ void MainWindow::onNewFrame(const PDense3DFrame pFrameData){
         frame.depth = cv::Mat(frameSize, CV_32FC3, pFrameData->depthData);
 
 
-        //  float depth1 = frame.depth.at<float>(0, 0);
-          float depth2 = frame.depth.at<float>(WIDTH / 2, HEIGHT / 2);
+          float depth2 = frame.depth.at<float>(0, 0);
+//          float depth2 = pFrameData->depthData.at<float>(WIDTH / 2, HEIGHT / 2);
         //  float depth3 = frame.depth.at<float>(WIDTH -1, HEIGHT - 1);
 
         cvtColor(frame.leftImg, _leftRGB, COLOR_GRAY2BGR);
@@ -56,12 +49,16 @@ void MainWindow::onNewFrame(const PDense3DFrame pFrameData){
         Mat disp8, rgbBDisparity;
         frame.disparity.convertTo(disp8, CV_8UC1, 255.0 / (camera->getParams().numDisparities * 16));
         cv::cvtColor(disp8, rgbBDisparity, COLOR_GRAY2BGR);
+
+        double depthTest = depth2 / 1000;
+
+        ui->depth->setText(QString::number(depthTest));
 //        qDebug()<< "x: " << pFrameData->depthData->x << "y: "
 //                <<pFrameData->depthData->y << "z: "<< pFrameData->depthData->z
 //               <<"depthMid:" << depth2;
 
         //farebna hlbkova mapa
-        //cv::LUT(rgbBDisparity, colorLut, rgbBDisparity);
+//        cv::LUT(rgbBDisparity, colorLut, rgbBDisparity);
 
       //zobrazenie
         ui->out_left->setImage(_leftRGB);

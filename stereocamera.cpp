@@ -2,7 +2,7 @@
 
 
 StereoCamera::StereoCamera(unsigned initWidth, unsigned initHeight, unsigned initFps, const std::string initLicense):
-    width(initWidth), height(initHeight), fps(initFps), license(initLicense)
+    width(initWidth), height(initHeight), fps(initFps), license(initLicense), duo(NULL), dense(NULL)
 {
     // Find optimal binning parameters for given (width, height)
     // This maximizes sensor imaging area for given resolution
@@ -21,30 +21,24 @@ StereoCamera::StereoCamera(unsigned initWidth, unsigned initHeight, unsigned ini
     }
 }
 
-bool StereoCamera::open(){
+void StereoCamera::open(){
     if(!OpenDUO(&duo)){
-        return false;
-      //  throw new std::invalid_argument("Could not open DUO camera");
+        throw new std::invalid_argument("Could not open DUO camera");
     }
 
     if (!Dense3DOpen(&dense, duo)) {
-        return false;
-      //  throw new std::invalid_argument("Could not open Dense3DMT library");
+        throw new std::invalid_argument("Could not open Dense3DMT library");
     }
 
     // Set the Dense3D license
     if (!SetDense3DLicense(dense, license.c_str()))
     {
-        Dense3DClose(dense);
-        return false;
-       // throw new std::invalid_argument("Invalid or missing Dense3D license. To get your license visit https://duo3d.com/account");
+        throw new std::invalid_argument("Invalid or missing Dense3D license. To get your license visit https://duo3d.com/account");
     }
 
     // Set the image size
     if (!SetDense3DImageInfo(dense, width, height, fps)) {
-        Dense3DClose(dense);
-        return false;
-       // throw new std::invalid_argument("Invalid image size");
+        throw new std::invalid_argument("Invalid image size");
     }
 }
 
@@ -76,15 +70,15 @@ void StereoCamera::setParams(){
 }
 
 StereoCamera::~StereoCamera(){
-//    niekde tu to pada!!!
-//    if(duo != NULL){
-//        StopDUO(duo);
-//        CloseDUO(duo);
-//    }
-//    if(dense != NULL){
-//        Dense3DStop(dense);
-//        Dense3DClose(dense);
-//    }
+    if(duo != NULL){
+        CloseDUO(duo);
+        StopDUO(duo);
+    }
+
+    if(dense != NULL){
+        Dense3DClose(dense);
+        Dense3DStop(dense);
+    }
 }
 
 void StereoCamera::printInfo(){

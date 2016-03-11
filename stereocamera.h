@@ -30,8 +30,7 @@ public:
     StereoCamera(unsigned initWidth, unsigned initHeight, unsigned initFps, const std::string initLicense);
     ~StereoCamera();
 
-    bool open();
-
+    void open();
 
     // TODO
     void setParams();

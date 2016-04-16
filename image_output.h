@@ -11,6 +11,7 @@ class ImageOutput : public QWidget
     Q_OBJECT
 public:
     ImageOutput(QWidget* parent = 0);
+    void mousePressEvent(QMouseEvent *e);
 public slots:
     // Mat imag must be BGR image
     void setImage(const cv::Mat3b &image);

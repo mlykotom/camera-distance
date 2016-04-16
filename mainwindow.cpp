@@ -7,33 +7,28 @@
 #define HEIGHT 240
 #define FPS 10
 
+int centerX = WIDTH / 2;
+int centerY = HEIGHT / 2;
+
 MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent),
     ui(new Ui::MainWindow),
     camera(NULL)
 {
-
     ui->setupUi(this);
 
     colorLut = Mat(cv::Size(256, 1), CV_8UC3);
     prepareColorLut(&colorLut);
 
-
-
-    camera = new StereoCamera(WIDTH, HEIGHT, FPS, LICENSE);
-
-    if(camera->open()){
-
+    try{
+        camera = new StereoCamera(WIDTH, HEIGHT, FPS, LICENSE);
+        camera->open();
         camera->setParams();
+
         camera->start(newFrameCallback, this);
+    } catch(std::invalid_argument * error){
+        QMessageBox::warning(this, "Invalid argument", error->what());
     }
-    else
-        qDebug()<<"Camera not opened!";
-
-    leftQueue.resize(0);
-    rightQueue.resize(0);
-    depthQueue.resize(0);
-
 }
 
 void MainWindow::onNewFrame(const PDense3DFrame pFrameData){
@@ -43,61 +38,40 @@ void MainWindow::onNewFrame(const PDense3DFrame pFrameData){
         frame.leftImg = cv::Mat(frameSize, CV_8U, pFrameData->duoFrame->leftData);
         frame.rightImg = cv::Mat(frameSize, CV_8U, pFrameData->duoFrame->rightData);
         frame.disparity = cv::Mat(frameSize, CV_32F, pFrameData->disparityData);
-        frame.depth = cv::Mat(frameSize, CV_32FC3, pFrameData->depthData);
+        frame.depth = cv::Mat3f(frameSize, CV_32FC3, pFrameData->depthData);
 
+        int disparities = (camera->getParams().numDisparities * 16);
 
-        //  float depth1 = frame.depth.at<float>(0, 0);
-          float depth2 = frame.depth.at<float>(WIDTH / 2, HEIGHT / 2);
-        //  float depth3 = frame.depth.at<float>(WIDTH -1, HEIGHT - 1);
+        Point p = Point(centerX, centerY);
 
         cvtColor(frame.leftImg, _leftRGB, COLOR_GRAY2BGR);
-        cvtColor(frame.rightImg, _rightRGB, COLOR_GRAY2BGR);
+
+        cv::Rect testRect = cv::Rect_<int>(centerX - 10, centerY - 10, 20, 20);
+        _leftRGB(testRect) = 0xFF0000;
+
+        cv::Vec3f chro = depth.at<Vec3f>(p);
+        float depthPoint = chro[2] / 10.0;
+
+        float focal_length_pixels = 2 * 360;
+        float baseline_mm = 30;
+        float depthCalculated = (baseline_mm * focal_length_pixels / frame.disparity.at<float>(p)) / 100.0;
+
+        ui->depth->setText(QString::number(depthCalculated) + " | " + QString::number(depthPoint));
 
         Mat disp8, rgbBDisparity;
-        frame.disparity.convertTo(disp8, CV_8UC1, 255.0 / (camera->getParams().numDisparities * 16));
+        frame.disparity.convertTo(disp8, CV_8UC1, 255.0 / disparities);
         cv::cvtColor(disp8, rgbBDisparity, COLOR_GRAY2BGR);
-//        qDebug()<< "x: " << pFrameData->depthData->x << "y: "
-//                <<pFrameData->depthData->y << "z: "<< pFrameData->depthData->z
-//               <<"depthMid:" << depth2;
 
         //farebna hlbkova mapa
-        //cv::LUT(rgbBDisparity, colorLut, rgbBDisparity);
+//        cv::LUT(rgbBDisparity, colorLut, rgbBDisparity);
 
-      //zobrazenie
+        //zobrazenie
         ui->out_left->setImage(_leftRGB);
-        ui->out_right->setImage(_rightRGB);
         ui->out_depth->setImage(rgbBDisparity);
-
-//        if(leftQueue.count()  < 1000) leftQueue.push_back(_leftRGB);
-//        if(rightQueue.count() < 1000) rightQueue.push_back(_rightRGB);
-//        if(depthQueue.count() < 1000) depthQueue.push_back(rgbBDisparity);
     }
     catch(std::exception & error){
         qDebug() << error.what();
     }
-}
-
-void MainWindow::startProjecting()
-{
-    while(cvWaitKey(cvWaitKey(1) & 0xff) != 27){
-  //  while(1){
-        if(!leftQueue.empty()){
-
-            ui->out_left->setImage(leftQueue.front());
-            leftQueue.pop_front();
-        }
-        if(!rightQueue.empty()){
-
-            ui->out_right->setImage(rightQueue.front());
-            rightQueue.pop_front();
-        }
-        if(!depthQueue.empty()){
-
-            ui->out_depth->setImage(depthQueue.front());
-            depthQueue.pop_front();
-        }
-
-   }
 }
 
 MainWindow::~MainWindow()
@@ -106,3 +80,26 @@ MainWindow::~MainWindow()
     delete ui;
 }
 
+void MainWindow::on_ledSlider_valueChanged(int value)
+{
+    camera->setLed(value* 0.1);
+    qDebug() << camera->getLed();
+}
+
+void MainWindow::on_gainSlider_valueChanged(int value)
+{
+    camera->setGain(value* 0.1);
+    qDebug() << camera->getGain();
+}
+
+void MainWindow::on_exposureSlider_valueChanged(int value)
+{
+    camera->setExposure(value* 0.1);
+    qDebug() << camera->getExposure();
+}
+
+void MainWindow::on_swapVerticalCheckbox_clicked(bool checked)
+{
+    camera->setVerticalFlip(checked);
+    qDebug() << camera->getVerticalFlip();
+}

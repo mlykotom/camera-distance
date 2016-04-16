@@ -30,8 +30,7 @@ public:
     StereoCamera(unsigned initWidth, unsigned initHeight, unsigned initFps, const std::string initLicense);
     ~StereoCamera();
 
-    bool open();
-
+    void open();
 
     // TODO
     void setParams();
@@ -45,8 +44,6 @@ public:
         Dense3DStart(dense, callback, userData);
     }
 
-
-
     DUOInstance getCamera(){
         return duo;
     }
@@ -55,20 +52,54 @@ public:
         return dense;
     }
 
-    void setExposure(float value) {
+    void setExposure(double value) {
         SetDUOExposure(duo, value);
+    }
+
+    float getExposure(){
+        float value = 0.0;
+        GetDUOExposure(duo, &value);
+        return value;
+    }
+
+    void setVerticalFlip(bool isSet) {
+        SetDUOVFlip(duo, isSet);
+    }
+
+    bool getVerticalFlip(){
+        int value = false;
+        GetDUOVFlip(duo, &value);
+        return value;
     }
 
     void setUndistort(bool isSet) {
         SetDUOUndistort(duo, isSet);
     }
 
-    void setGain(float value) {
+    bool getUndistort(){
+        bool value = false;
+        GetDUOUndistort(duo, &value);
+        return value;
+    }
+
+    void setGain(double value) {
         SetDUOGain(duo, value);
     }
 
-    void setLed(float value) {
+    float getGain(){
+        float value = 0.0;
+        __DUOParamGet__(duo, DUO_GAIN, &value);
+        return value;
+    }
+
+    void setLed(double value) {
         SetDUOLedPWM(duo, value);
+    }
+
+    float getLed(){
+        double value;
+        GetDUOLedPWM(duo, &value);
+        return value;
     }
 
     void printInfo();

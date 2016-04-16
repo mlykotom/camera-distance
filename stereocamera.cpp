@@ -2,7 +2,7 @@
 
 
 StereoCamera::StereoCamera(unsigned initWidth, unsigned initHeight, unsigned initFps, const std::string initLicense):
-    width(initWidth), height(initHeight), fps(initFps), license(initLicense)
+    width(initWidth), height(initHeight), fps(initFps), license(initLicense), duo(NULL), dense(NULL)
 {
     // Find optimal binning parameters for given (width, height)
     // This maximizes sensor imaging area for given resolution
@@ -21,42 +21,36 @@ StereoCamera::StereoCamera(unsigned initWidth, unsigned initHeight, unsigned ini
     }
 }
 
-bool StereoCamera::open(){
+void StereoCamera::open(){
     if(!OpenDUO(&duo)){
-        return false;
-      //  throw new std::invalid_argument("Could not open DUO camera");
+        throw new std::invalid_argument("Could not open DUO camera");
     }
 
     if (!Dense3DOpen(&dense, duo)) {
-        return false;
-      //  throw new std::invalid_argument("Could not open Dense3DMT library");
+        throw new std::invalid_argument("Could not open Dense3DMT library");
     }
 
     // Set the Dense3D license
     if (!SetDense3DLicense(dense, license.c_str()))
     {
-        Dense3DClose(dense);
-        return false;
-       // throw new std::invalid_argument("Invalid or missing Dense3D license. To get your license visit https://duo3d.com/account");
+        throw new std::invalid_argument("Invalid or missing Dense3D license. To get your license visit https://duo3d.com/account");
     }
 
     // Set the image size
     if (!SetDense3DImageInfo(dense, width, height, fps)) {
-        Dense3DClose(dense);
-        return false;
-       // throw new std::invalid_argument("Invalid image size");
+        throw new std::invalid_argument("Invalid image size");
     }
 }
 
 void StereoCamera::setParams(){
     params.scale = 0;
     params.mode = 3;
-    params.numDisparities = 2;
-    params.sadWindowSize = 6;
-    params.preFilterCap = 28;
-    params.uniqenessRatio = 27;
-    params.speckleWindowSize = 52;
-    params.speckleRange = 14;
+    params.sadWindowSize = 3;
+    params.numDisparities = 9;
+    params.preFilterCap = 63;
+    params.uniqenessRatio = 10;
+    params.speckleWindowSize = 100;
+    params.speckleRange = 32;
     if (!SetDense3Params(dense, params)) {
         Dense3DClose(dense);
         throw new std::invalid_argument("GetDense3Params error");
@@ -68,23 +62,23 @@ void StereoCamera::setParams(){
     qDebug() << "Frame Dimension: [" << w << "," << h << "]";
 
     // Set exposure, LED brightness and camera orientation
-    SetDUOExposure(duo, 40);
-    SetDUOLedPWM(duo, 40);
-    SetDUOGain(duo, 0);
-    SetDUOVFlip(duo, false);
-    SetDUOUndistort(duo, true);
+    this->setLed(45);
+    this->setGain(0);
+    this->setExposure(50);
+    this->setUndistort(true);
+    this->setVerticalFlip(false);
 }
 
 StereoCamera::~StereoCamera(){
-//    niekde tu to pada!!!
-//    if(duo != NULL){
-//        StopDUO(duo);
-//        CloseDUO(duo);
-//    }
-//    if(dense != NULL){
-//        Dense3DStop(dense);
-//        Dense3DClose(dense);
-//    }
+    if(duo != NULL){
+        CloseDUO(duo);
+        StopDUO(duo);
+    }
+
+    if(dense != NULL){
+        Dense3DClose(dense);
+        Dense3DStop(dense);
+    }
 }
 
 void StereoCamera::printInfo(){

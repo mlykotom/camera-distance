@@ -62,11 +62,11 @@ void StereoCamera::setParams(){
     qDebug() << "Frame Dimension: [" << w << "," << h << "]";
 
     // Set exposure, LED brightness and camera orientation
-    SetDUOExposure(duo, 40);
-    SetDUOLedPWM(duo, 40);
-    SetDUOGain(duo, 0);
-    SetDUOVFlip(duo, false);
-    SetDUOUndistort(duo, true);
+    this->setLed(45);
+    this->setGain(0);
+    this->setExposure(50);
+    this->setUndistort(true);
+    this->setVerticalFlip(false);
 }
 
 StereoCamera::~StereoCamera(){

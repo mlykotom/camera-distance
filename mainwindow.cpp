@@ -38,11 +38,28 @@ void MainWindow::onNewFrame(const PDense3DFrame pFrameData){
         frame.leftImg = cv::Mat(frameSize, CV_8U, pFrameData->duoFrame->leftData);
         frame.rightImg = cv::Mat(frameSize, CV_8U, pFrameData->duoFrame->rightData);
         frame.disparity = cv::Mat(frameSize, CV_32F, pFrameData->disparityData);
+        frame.depth = cv::Mat3f(frameSize, CV_32FC3, pFrameData->depthData);
+
+        int disparities = (camera->getParams().numDisparities * 16);
+
+        Point p = Point(centerX, centerY);
 
         cvtColor(frame.leftImg, _leftRGB, COLOR_GRAY2BGR);
 
+        cv::Rect testRect = cv::Rect_<int>(centerX - 10, centerY - 10, 20, 20);
+        _leftRGB(testRect) = 0xFF0000;
+
+        cv::Vec3f chro = depth.at<Vec3f>(p);
+        float depthPoint = chro[2] / 10.0;
+
+        float focal_length_pixels = 2 * 360;
+        float baseline_mm = 30;
+        float depthCalculated = (baseline_mm * focal_length_pixels / frame.disparity.at<float>(p)) / 100.0;
+
+        ui->depth->setText(QString::number(depthCalculated) + " | " + QString::number(depthPoint));
+
         Mat disp8, rgbBDisparity;
-        frame.disparity.convertTo(disp8, CV_8UC1, 255.0 / (camera->getParams().numDisparities * 16));
+        frame.disparity.convertTo(disp8, CV_8UC1, 255.0 / disparities);
         cv::cvtColor(disp8, rgbBDisparity, COLOR_GRAY2BGR);
 
         //farebna hlbkova mapa

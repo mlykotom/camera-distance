@@ -103,8 +103,8 @@ void MainWindow::onNewFrame(const PDense3DFrame pFrameData){
 MainWindow::~MainWindow()
 {
     //tu to pada pri zavreni okna
-    //    if (camera != NULL)
-    //        delete camera;
+//    if (camera != NULL)
+//            delete camera;
     delete ui;
 }
 

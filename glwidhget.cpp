@@ -2,7 +2,7 @@
 #include "QDebug"
 
 GLWidhget::GLWidhget(bool showRect_, QWidget *parent):
-    QGLWidget(parent),
+    QGLWidget(QGLFormat(QGL::DoubleBuffer),parent),
     rectHeight(20),
     rectWidht(20),
     showRect(showRect_)
@@ -32,7 +32,7 @@ void GLWidhget::mousePressEvent(QMouseEvent *e)
     int x = e->pos().x()-10;
     int y = e->pos().y()-10;
     rect = QRectF(x,y,rectWidht,rectHeight);
-    emit measuringPointCoordsChanged(x,y);
+    emit measuringPointCoordsChanged(((int)x/this->width())*320,(int)(y/this->height()) * 240);
 }
 
 void GLWidhget::setImage(const cv::Mat3b &image, double distance)
@@ -46,11 +46,9 @@ void GLWidhget::setImage(const cv::Mat3b &image, double distance)
 void GLWidhget::paintEvent(QPaintEvent *event)
 {
 
-    QMutexLocker lock(&_mutex);
 
     QPainter painter;
     painter.begin(this);
-   // painter.drawRect(QRect(0,0,50,50));
     painter.drawImage(event->rect(),_image);
 
     if(showRect){

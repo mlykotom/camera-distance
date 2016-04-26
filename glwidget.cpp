@@ -1,7 +1,7 @@
-#include "glwidhget.h"
+#include "glwidget.h"
 #include "QDebug"
 
-GLWidhget::GLWidhget(bool showRect_, QWidget *parent):
+GLWidget::GLWidget(bool showRect_, QWidget *parent):
     QGLWidget(QGLFormat(QGL::DoubleBuffer), parent),
     rectHeight(20),
     rectWidht(20),
@@ -16,19 +16,19 @@ GLWidhget::GLWidhget(bool showRect_, QWidget *parent):
     distanceString = "";
 }
 
-QSize GLWidhget::minimumSizeHint() const
+QSize GLWidget::minimumSizeHint() const
 {
     return QSize(50, 50);
 
 }
 
-QSize GLWidhget::sizeHint() const
+QSize GLWidget::sizeHint() const
 {
     return QSize(300, 200);
 
 }
 
-void GLWidhget::mousePressEvent(QMouseEvent *e)
+void GLWidget::mousePressEvent(QMouseEvent *e)
 {
     if(!showRect) return;
 
@@ -40,22 +40,24 @@ void GLWidhget::mousePressEvent(QMouseEvent *e)
     int frameX = (x / (double)this->width()) * 320;
     int frameY = (y / (double)this->height()) * 240;
     emit measuringPointCoordsChanged(frameX, frameY);
-
 }
 
-void GLWidhget::setImage(const cv::Mat3b &image, double distance)
+void GLWidget::setImage(const cv::Mat3b &image, double distance)
 {
     _image = QImage(image.data, image.cols, image.rows, QImage::Format_RGB888);
     distanceString = QString::number(distance,'f',2);
     update();
-
-
 }
 
-void GLWidhget::paintEvent(QPaintEvent *event)
+#define FRAME_TIMEOUT_MS 5
+
+void GLWidget::paintEvent(QPaintEvent *event)
 {
+    if(!_mutex.tryLock(FRAME_TIMEOUT_MS)) return;
+    //    timer.start();
     QPainter painter;
     painter.begin(this);
+
     painter.drawImage(event->rect(),_image);
 
     if(showRect){
@@ -65,7 +67,7 @@ void GLWidhget::paintEvent(QPaintEvent *event)
         painter.drawText(textPoint,distanceString);
     }
 
-
+//    qDebug() << timer.elapsed();
     painter.end();
+    _mutex.unlock();
 }
-

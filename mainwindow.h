@@ -5,14 +5,13 @@
 #include <QDesktopWidget>
 #include <QtWidgets>
 
-
 #include <queue>
 #include <stdexcept>
 #include <opencv2/opencv.hpp>
 #include "DUOLib.h"
 #include "api_keys.h"
 #include "stereocamera.h"
-#include "glwidhget.h"
+#include "glwidget.h"
 
 using namespace cv;
 
@@ -31,10 +30,11 @@ private:
     Mat colorLut;
     QPointF measuringPoint;
     Point p;
-    GLWidhget *glDistanceWidget;
-    GLWidhget *glDepthWidget;
+    GLWidget *glDistanceWidget;
+    GLWidget *glDepthWidget;
     QMutex _mutex;
     QLabel *distanceLabel;
+    QTime timer;
 
     static void CALLBACK newFrameCallback(const PDense3DFrame pFrameData, void *pUserData){
         ((MainWindow *)pUserData)->onNewFrame(pFrameData);
@@ -50,7 +50,6 @@ public:
     void startProjecting();
 
 public slots:
-    //int alebo float?
     void onMeasuringPointCoordsChanged(int x, int y);
 
 private slots:

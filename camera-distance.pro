@@ -47,12 +47,12 @@ LIBS += $${DUO_LIBS} \
 SOURCES += main.cpp\
 		mainwindow.cpp \
 	stereocamera.cpp \
-	glwidhget.cpp
+    glwidget.cpp
 
 HEADERS  += api_keys.h mainwindow.h stereocamera.h \
 	utils.h \
 	api_keys.h \
-	glwidhget.h
+    glwidget.h
 
 FORMS    += mainwindow.ui
 

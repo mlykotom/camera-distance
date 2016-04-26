@@ -1,7 +1,6 @@
 #include "mainwindow.h"
 #include "ui_mainwindow.h"
 #include "utils.h"
-#include <qfile.h>
 
 #define WIDTH 320
 #define HEIGHT 240
@@ -17,10 +16,10 @@ MainWindow::MainWindow(QWidget *parent) :
 {
     ui->setupUi(this);
 
-    glDistanceWidget = new GLWidhget(true,this);
+    glDistanceWidget = new GLWidget(true,this);
     ui->glDistanceLayout->addWidget(glDistanceWidget,0,0);
 
-    glDepthWidget = new GLWidhget(false,this);
+    glDepthWidget = new GLWidget(false,this);
     ui->glDepthLayout->addWidget(glDepthWidget,0,0);
 
     colorLut = Mat(cv::Size(256, 1), CV_8UC3);
@@ -30,7 +29,6 @@ MainWindow::MainWindow(QWidget *parent) :
         camera = new StereoCamera(WIDTH, HEIGHT, FPS, LICENSE);
         camera->open();
         camera->setParams();
-
         camera->start(newFrameCallback, this);
     } catch(std::invalid_argument * error){
         QMessageBox::warning(this, "Invalid argument", error->what());
@@ -41,15 +39,10 @@ MainWindow::MainWindow(QWidget *parent) :
 }
 
 void MainWindow::onNewFrame(const PDense3DFrame pFrameData){
-
-    if(!_mutex.tryLock(50)) return;
-
-    //  QMutexLocker lock(&_mutex);
-
+    timer.start();
     D3DFrame frame;
     Size frameSize(pFrameData->duoFrame->width,pFrameData->duoFrame->height);
     frame.leftImg = cv::Mat(frameSize, CV_8U, pFrameData->duoFrame->leftData);
-    frame.rightImg = cv::Mat(frameSize, CV_8U, pFrameData->duoFrame->rightData);
     frame.disparity = cv::Mat(frameSize, CV_32F, pFrameData->disparityData);
     frame.depth = cv::Mat(frameSize, CV_32FC3, pFrameData->depthData);
 
@@ -70,7 +63,7 @@ void MainWindow::onNewFrame(const PDense3DFrame pFrameData){
         //render
         glDistanceWidget->setImage(_leftRGB,depthCalculated);
         //show distance
-        ui->depth->setText(QString::number(p.x) + "," + QString::number(p.y) +"| " + QString::number(depthPoint) + "|"  + QString::number(depthCalculated));
+//        ui->depth->setText(QString::number(p.x) + "," + QString::number(p.y) +"| " + QString::number(depthPoint) + "|"  + QString::number(depthCalculated));
     }
     else if(ui->tabWidget->currentIndex() == 1){
         int disparities = (camera->getParams().numDisparities * 16);
@@ -83,7 +76,9 @@ void MainWindow::onNewFrame(const PDense3DFrame pFrameData){
         glDepthWidget->setImage(rgbBDisparity,0);
     }
 
-    _mutex.unlock();
+
+
+    ui->depth->setText(QString::number(timer.elapsed()));
 }
 
 MainWindow::~MainWindow()

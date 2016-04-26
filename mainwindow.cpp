@@ -5,7 +5,7 @@
 
 #define WIDTH 320
 #define HEIGHT 240
-#define FPS 10
+#define FPS 20
 
 int centerX = WIDTH / 2;
 int centerY = HEIGHT / 2;
@@ -16,6 +16,9 @@ MainWindow::MainWindow(QWidget *parent) :
     camera(NULL)
 {
     ui->setupUi(this);
+
+    glWidget = new GLWidhget();
+    this->setCentralWidget(glWidget);
 
     colorLut = Mat(cv::Size(256, 1), CV_8UC3);
     prepareColorLut(&colorLut);
@@ -35,9 +38,18 @@ MainWindow::MainWindow(QWidget *parent) :
     p = Point(centerX, centerY);
 
     connect(ui->out_left,SIGNAL(measuringPointCoordsChanged(int,int)),this,SLOT(onMeasuringPointCoordsChanged(int,int)));
+
+    //_mutex = new QMutex();
+   //_mutex->unlock();
+
 }
 
 void MainWindow::onNewFrame(const PDense3DFrame pFrameData){
+
+    if(!_mutex.tryLock(50)) return;
+
+  //  QMutexLocker lock(&_mutex);
+
     try{
         D3DFrame frame;
         Size frameSize(pFrameData->duoFrame->width,pFrameData->duoFrame->height);
@@ -66,20 +78,23 @@ void MainWindow::onNewFrame(const PDense3DFrame pFrameData){
         float depthCalculated = (baseline_mm * focal_length_pixels /
                                  frame.disparity.at<float>(p)) / 100.0;
 
-        ui->depth->setText(QString::number(depthCalculated) + " | " + QString::number(depthPoint));
+//        ui->depth->setText(QString::number(depthCalculated) + " | " + QString::number(depthPoint));
 
 
-        Mat disp8, rgbBDisparity;
-        frame.disparity.convertTo(disp8, CV_8UC1, 255.0 / disparities);
-        cv::cvtColor(disp8, rgbBDisparity, COLOR_GRAY2BGR);
+//        Mat disp8, rgbBDisparity;
+//        frame.disparity.convertTo(disp8, CV_8UC1, 255.0 / disparities);
+//        cv::cvtColor(disp8, rgbBDisparity, COLOR_GRAY2BGR);
 
         //farebna hlbkova mapa
         //        cv::LUT(rgbBDisparity, colorLut, rgbBDisparity);
 
         //zobrazenie
         // druhy parameter je vzdialenost -> depthCalculated, 69 hihihihih
-        ui->out_left->setImage(_leftRGB,69.6969);
+       // ui->out_left->setImage(_leftRGB,69.6969);
         //ui->out_depth->setImage(rgbBDisparity,0);
+        glWidget->setImage(_leftRGB,0);
+
+        _mutex.unlock();
     }
     catch(std::exception & error){
         qDebug() <<"error:" << error.what();

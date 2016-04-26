@@ -4,7 +4,7 @@
 #
 #-------------------------------------------------
 
-QT       += core gui widgets
+QT       += core gui widgets opengl
 
 TARGET = camera-distance
 TEMPLATE = app
@@ -42,17 +42,19 @@ LIBS += $${OPENCV_LIBS}
 # DUO3D dependency
 INCLUDEPATH += $${DUO_INC}
 LIBS += $${DUO_LIBS} \
-		-lDUO \
+                -lDUOLib \
 		-lDense3DMT
 
 SOURCES += main.cpp\
 		mainwindow.cpp \
 	stereocamera.cpp \
-	image_output.cpp
+	image_output.cpp \
+    glwidhget.cpp
 
 HEADERS  += api_keys.h mainwindow.h stereocamera.h image_output.h \
 	utils.h \
-	api_keys.h
+	api_keys.h \
+    glwidhget.h
 
 FORMS    += mainwindow.ui
 

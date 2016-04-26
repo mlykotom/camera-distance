@@ -46,6 +46,7 @@ void ImageOutput::paintEvent(QPaintEvent *event)
 
     painter.setPen(Qt::red);
     painter.drawRect(rect);
+    painter.end();
     //text
     //painter.drawText(textPoint,distanceString);
 //    _mutex.unlock();

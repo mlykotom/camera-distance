@@ -13,6 +13,7 @@
 #include "api_keys.h"
 #include "image_output.h"
 #include "stereocamera.h"
+#include "glwidhget.h"
 
 using namespace cv;
 
@@ -31,6 +32,8 @@ private:
     Mat colorLut;
     QPointF measuringPoint;
     Point p;
+    GLWidhget *glWidget;
+    QMutex _mutex;
 
     static void CALLBACK newFrameCallback(const PDense3DFrame pFrameData, void *pUserData){
         ((MainWindow *)pUserData)->onNewFrame(pFrameData);

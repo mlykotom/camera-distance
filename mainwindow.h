@@ -29,6 +29,8 @@ private:
     StereoCamera *camera;
     cv::Mat _leftRGB, _depthRGB;
     Mat colorLut;
+    QPointF measuringPoint;
+    Point p;
 
     static void CALLBACK newFrameCallback(const PDense3DFrame pFrameData, void *pUserData){
         ((MainWindow *)pUserData)->onNewFrame(pFrameData);
@@ -42,6 +44,11 @@ public:
     ~MainWindow();
 
     void startProjecting();
+
+public slots:
+    //int alebo float?
+    void onMeasuringPointCoordsChanged(int x, int y);
+
 private slots:
     void on_ledSlider_valueChanged(int value);
     void on_gainSlider_valueChanged(int value);

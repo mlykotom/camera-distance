@@ -3,24 +3,36 @@
 
 
 ImageOutput::ImageOutput(QWidget *parent)
-    :QWidget(parent)
+    :QWidget(parent),
+      rectHeight(20),
+      rectWidht(20)
 {
     setMinimumSize(1, 1);
     _image = QImage(QSize(200,90), QImage::Format_RGB888);
-    _image.fill(Qt::black);
+    _image.fill(Qt::white);
+
+    rect = QRectF(0,0,rectWidht,rectHeight);
+    textPoint = QPointF(0,0);
+    distanceString = "";
 }
 
 void ImageOutput::mousePressEvent(QMouseEvent *e)
 {
-    qDebug() << e->pos();
+    int x = e->pos().x()-10;
+    int y = e->pos().y()-10;
+    rect = QRectF(x,y,rectWidht,rectHeight);
+    emit measuringPointCoordsChanged(x,y);
+    //text ale to asi netreba
+    //textPoint = QPointF(x,y+35);
 }
 
-void ImageOutput::setImage(const cv::Mat3b &image)
+void ImageOutput::setImage(const cv::Mat3b &image, double distance)
 {
 //    if(!_mutex.tryLock()) return;
 //    _mutex.tryLock(5);
     QMutexLocker lock(&_mutex); // Lock to assure access
     _image = QImage(image.data, image.cols, image.rows, QImage::Format_RGB888);
+    distanceString = QString::number(distance,'g',6);
     update();
 //    _mutex.unlock();
 }
@@ -31,5 +43,10 @@ void ImageOutput::paintEvent(QPaintEvent *event)
     QMutexLocker lock(&_mutex);
     QPainter painter(this);
     painter.drawImage(event->rect(),_image);
+
+    painter.setPen(Qt::red);
+    painter.drawRect(rect);
+    //text
+    //painter.drawText(textPoint,distanceString);
 //    _mutex.unlock();
 }

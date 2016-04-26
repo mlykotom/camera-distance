@@ -29,6 +29,12 @@ MainWindow::MainWindow(QWidget *parent) :
     } catch(std::invalid_argument * error){
         QMessageBox::warning(this, "Invalid argument", error->what());
     }
+
+    //    measuringPoint.setX(centerX);
+    //    measuringPoint.setY(centerY);
+    p = Point(centerX, centerY);
+
+    connect(ui->out_left,SIGNAL(measuringPointCoordsChanged(int,int)),this,SLOT(onMeasuringPointCoordsChanged(int,int)));
 }
 
 void MainWindow::onNewFrame(const PDense3DFrame pFrameData){
@@ -38,46 +44,61 @@ void MainWindow::onNewFrame(const PDense3DFrame pFrameData){
         frame.leftImg = cv::Mat(frameSize, CV_8U, pFrameData->duoFrame->leftData);
         frame.rightImg = cv::Mat(frameSize, CV_8U, pFrameData->duoFrame->rightData);
         frame.disparity = cv::Mat(frameSize, CV_32F, pFrameData->disparityData);
-        frame.depth = cv::Mat3f(frameSize, CV_32FC3, pFrameData->depthData);
+        //nejde :(
+        //        frame.depth = cv::Mat3f(frameSize, CV_32FC3, pFrameData->depthData);
+
+        frame.depth = cv::Mat(frameSize, CV_32FC3, pFrameData->depthData);
 
         int disparities = (camera->getParams().numDisparities * 16);
 
-        Point p = Point(centerX, centerY);
+        //Point p = Point(centerX, centerY);
 
         cvtColor(frame.leftImg, _leftRGB, COLOR_GRAY2BGR);
 
-        cv::Rect testRect = cv::Rect_<int>(centerX - 10, centerY - 10, 20, 20);
-        _leftRGB(testRect) = 0xFF0000;
+        //        cv::Rect testRect = cv::Rect_<int>(centerX - 10, centerY - 10, 20, 20);
+        //        _leftRGB(testRect) = 0xFF0000;
 
-        cv::Vec3f chro = depth.at<Vec3f>(p);
+        cv::Vec3f chro = frame.depth.at<Vec3f>(p);
         float depthPoint = chro[2] / 10.0;
 
         float focal_length_pixels = 2 * 360;
         float baseline_mm = 30;
-        float depthCalculated = (baseline_mm * focal_length_pixels / frame.disparity.at<float>(p)) / 100.0;
+        float depthCalculated = (baseline_mm * focal_length_pixels /
+                                 frame.disparity.at<float>(p)) / 100.0;
 
         ui->depth->setText(QString::number(depthCalculated) + " | " + QString::number(depthPoint));
+
 
         Mat disp8, rgbBDisparity;
         frame.disparity.convertTo(disp8, CV_8UC1, 255.0 / disparities);
         cv::cvtColor(disp8, rgbBDisparity, COLOR_GRAY2BGR);
 
         //farebna hlbkova mapa
-//        cv::LUT(rgbBDisparity, colorLut, rgbBDisparity);
+        //        cv::LUT(rgbBDisparity, colorLut, rgbBDisparity);
 
         //zobrazenie
-        ui->out_left->setImage(_leftRGB);
-        ui->out_depth->setImage(rgbBDisparity);
+        // druhy parameter je vzdialenost -> depthCalculated, 69 hihihihih
+        ui->out_left->setImage(_leftRGB,69.6969);
+        //ui->out_depth->setImage(rgbBDisparity,0);
     }
     catch(std::exception & error){
-        qDebug() << error.what();
+        qDebug() <<"error:" << error.what();
     }
 }
 
 MainWindow::~MainWindow()
 {
-    delete camera;
+    //tu to pada pri zavreni okna
+    //    if (camera != NULL)
+    //        delete camera;
     delete ui;
+}
+
+void MainWindow::onMeasuringPointCoordsChanged(int x, int y)
+{
+    //    measuringPoint.setX(x);
+    //    measuringPoint.setY(y);
+    p = Point(x, y);
 }
 
 void MainWindow::on_ledSlider_valueChanged(int value)

@@ -21,10 +21,10 @@ private:
     QImage _image;
     QMutex _mutex;
     QRectF rect;
-    QPointF textPoint;
-    QString distanceString;
     int rectWidht;
     int rectHeight;
+    QPointF textPoint;
+    QString distanceString;
 
 signals:
     void measuringPointCoordsChanged(int x, int y);

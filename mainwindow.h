@@ -34,6 +34,7 @@ private:
     Point p;
     GLWidhget *glWidget;
     QMutex _mutex;
+    QLabel *distanceLabel;
 
     static void CALLBACK newFrameCallback(const PDense3DFrame pFrameData, void *pUserData){
         ((MainWindow *)pUserData)->onNewFrame(pFrameData);

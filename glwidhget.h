@@ -8,12 +8,22 @@
 
 class GLWidhget : public QGLWidget
 {
+    Q_OBJECT
+
 public:
-    GLWidhget();
+    GLWidhget(QWidget *parent = 0);
 
     QSize minimumSizeHint() const;
     QSize sizeHint() const;
+
+    void mousePressEvent(QMouseEvent *e);
+
+
     void setImage(const cv::Mat3b &image, double distance);
+
+signals:
+    void measuringPointCoordsChanged(int x, int y);
+
 
 protected:
 
@@ -24,6 +34,11 @@ private:
     QImage _image;
     GLuint background;
     QMutex _mutex;
+
+    QRectF rect;
+    int rectWidht;
+    int rectHeight;
+
 
 };
 

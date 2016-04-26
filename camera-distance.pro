@@ -21,7 +21,7 @@ win32{
 		-lopencv_calib3d2412
 
  DUO_INC = C:\Users\Roman\Documents\DUO3D\Developers\SDK\include
- DUO_LIBS = -LC:\Users\Roman\Documents\DUO3D\Developers\SDK\windows\x86
+ DUO_LIBS = -LC:\Users\Roman\Documents\DUO3D\Developers\SDK\windows\x86 -lDUOLib
 }
 macx{
  OPENCV_INC = /usr/local/include/
@@ -33,7 +33,7 @@ macx{
 		-lopencv_calib3d
 
  DUO_INC = $$PWD/SDK/include
- DUO_LIBS = -L$$PWD/SDK/osx/x64/
+ DUO_LIBS = -L$$PWD/SDK/osx/x64/ -lDUO
 }
 
 # OpenCV dependency
@@ -42,19 +42,17 @@ LIBS += $${OPENCV_LIBS}
 # DUO3D dependency
 INCLUDEPATH += $${DUO_INC}
 LIBS += $${DUO_LIBS} \
-                -lDUOLib \
 		-lDense3DMT
 
 SOURCES += main.cpp\
 		mainwindow.cpp \
 	stereocamera.cpp \
-	image_output.cpp \
-    glwidhget.cpp
+	glwidhget.cpp
 
-HEADERS  += api_keys.h mainwindow.h stereocamera.h image_output.h \
+HEADERS  += api_keys.h mainwindow.h stereocamera.h \
 	utils.h \
 	api_keys.h \
-    glwidhget.h
+	glwidhget.h
 
 FORMS    += mainwindow.ui
 

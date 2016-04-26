@@ -11,7 +11,6 @@
 #include <opencv2/opencv.hpp>
 #include "DUOLib.h"
 #include "api_keys.h"
-#include "image_output.h"
 #include "stereocamera.h"
 #include "glwidhget.h"
 

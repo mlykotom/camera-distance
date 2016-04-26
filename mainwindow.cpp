@@ -5,7 +5,7 @@
 
 #define WIDTH 320
 #define HEIGHT 240
-#define FPS 20
+#define FPS 10
 
 int centerX = WIDTH / 2;
 int centerY = HEIGHT / 2;
@@ -36,15 +36,8 @@ MainWindow::MainWindow(QWidget *parent) :
         QMessageBox::warning(this, "Invalid argument", error->what());
     }
 
-    //    measuringPoint.setX(centerX);
-    //    measuringPoint.setY(centerY);
-    p = Point(centerX, centerY);
-
-    //connect(ui->out_left,SIGNAL(measuringPointCoordsChanged(int,int)),this,SLOT(onMeasuringPointCoordsChanged(int,int)));
+    p = cv::Point(centerX, centerY);
     connect(glDistanceWidget,SIGNAL(measuringPointCoordsChanged(int,int)),this,SLOT(onMeasuringPointCoordsChanged(int,int)));
-
-
-
 }
 
 void MainWindow::onNewFrame(const PDense3DFrame pFrameData){
@@ -53,14 +46,12 @@ void MainWindow::onNewFrame(const PDense3DFrame pFrameData){
 
     //  QMutexLocker lock(&_mutex);
 
-    try{
         D3DFrame frame;
         Size frameSize(pFrameData->duoFrame->width,pFrameData->duoFrame->height);
         frame.leftImg = cv::Mat(frameSize, CV_8U, pFrameData->duoFrame->leftData);
         frame.rightImg = cv::Mat(frameSize, CV_8U, pFrameData->duoFrame->rightData);
         frame.disparity = cv::Mat(frameSize, CV_32F, pFrameData->disparityData);
         frame.depth = cv::Mat(frameSize, CV_32FC3, pFrameData->depthData);
-
 
         if(ui->tabWidget->currentIndex() == 0){
             cvtColor(frame.leftImg, _leftRGB, COLOR_GRAY2BGR);
@@ -71,17 +62,16 @@ void MainWindow::onNewFrame(const PDense3DFrame pFrameData){
             cv::Vec3f chro = frame.depth.at<Vec3f>(p);
             float depthPoint = chro[2] / 10.0;
 
-            //calculated distance
-            //        float focal_length_pixels = 2 * 360;
-            //        float baseline_mm = 30;
-            //        float depthCalculated = (baseline_mm * focal_length_pixels /
-            //                                 frame.disparity.at<float>(p)) / 100.0;
+//            calculated distance
+                    float focal_length_pixels = 2 * 360;
+                    float baseline_mm = 30;
+                    float depthCalculated = (baseline_mm * focal_length_pixels /
+                                             frame.disparity.at<float>(p)) / 100.0;
 
             //show distance
-            ui->depth->setText(QString::number(depthPoint));
+            ui->depth->setText(QString::number(p.x) + "," + QString::number(p.y) +"| " + QString::number(depthPoint) + "|"  + QString::number(depthCalculated));
         }
-
-        if(ui->tabWidget->currentIndex() == 1){
+        else if(ui->tabWidget->currentIndex() == 1){
             int disparities = (camera->getParams().numDisparities * 16);
             Mat disp8, rgbBDisparity;
             frame.disparity.convertTo(disp8, CV_8UC1, 255.0 / disparities);
@@ -90,14 +80,9 @@ void MainWindow::onNewFrame(const PDense3DFrame pFrameData){
             cv::LUT(rgbBDisparity, colorLut, rgbBDisparity);
             //render
            glDepthWidget->setImage(rgbBDisparity,0);
-
         }
 
         _mutex.unlock();
-    }
-    catch(std::exception & error){
-        qDebug() <<"error:" << error.what();
-    }
 }
 
 MainWindow::~MainWindow()
@@ -110,9 +95,8 @@ MainWindow::~MainWindow()
 
 void MainWindow::onMeasuringPointCoordsChanged(int x, int y)
 {
-    //    measuringPoint.setX(x);
-    //    measuringPoint.setY(y);
     p = Point(x, y);
+    qDebug() << x << "," << y;
 }
 
 void MainWindow::on_ledSlider_valueChanged(int value)

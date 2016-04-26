@@ -38,6 +38,8 @@ private:
     QRectF rect;
     int rectWidht;
     int rectHeight;
+    QPointF textPoint;
+    QString distanceString;
 
     bool showRect;
 

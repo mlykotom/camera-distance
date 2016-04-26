@@ -12,6 +12,8 @@ GLWidhget::GLWidhget(bool showRect_, QWidget *parent):
 
 
     rect = QRectF(0,0,rectWidht,rectHeight);
+    textPoint = QPointF(0,0);
+    distanceString = "";
 }
 
 QSize GLWidhget::minimumSizeHint() const
@@ -33,7 +35,7 @@ void GLWidhget::mousePressEvent(QMouseEvent *e)
     int x = e->pos().x()-10;
     int y = e->pos().y()-10;
     rect = QRectF(x,y,rectWidht,rectHeight);
-
+    textPoint = QPointF(x,y+35);
     // TODO
     int frameX = (x / (double)this->width()) * 320;
     int frameY = (y / (double)this->height()) * 240;
@@ -44,6 +46,7 @@ void GLWidhget::mousePressEvent(QMouseEvent *e)
 void GLWidhget::setImage(const cv::Mat3b &image, double distance)
 {
     _image = QImage(image.data, image.cols, image.rows, QImage::Format_RGB888);
+    distanceString = QString::number(distance,'f',2);
     update();
 
 
@@ -58,6 +61,8 @@ void GLWidhget::paintEvent(QPaintEvent *event)
     if(showRect){
         painter.setPen(Qt::red);
         painter.drawRect(rect);
+        //text
+        painter.drawText(textPoint,distanceString);
     }
 
 

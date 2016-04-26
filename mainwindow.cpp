@@ -4,7 +4,7 @@
 
 #define WIDTH 320
 #define HEIGHT 240
-#define FPS 10
+#define FPS 40
 
 int centerX = WIDTH / 2;
 int centerY = HEIGHT / 2;
@@ -16,10 +16,13 @@ MainWindow::MainWindow(QWidget *parent) :
 {
     ui->setupUi(this);
 
-    glDistanceWidget = new GLWidget(true,this);
+    queue = new QQueue<int>();
+    queue2 = new QQueue<int>();
+
+    glDistanceWidget = new GLWidget(true, queue, this);
     ui->glDistanceLayout->addWidget(glDistanceWidget,0,0);
 
-    glDepthWidget = new GLWidget(false,this);
+    glDepthWidget = new GLWidget(false, queue2, this);
     ui->glDepthLayout->addWidget(glDepthWidget,0,0);
 
     colorLut = Mat(cv::Size(256, 1), CV_8UC3);
@@ -39,7 +42,11 @@ MainWindow::MainWindow(QWidget *parent) :
 }
 
 void MainWindow::onNewFrame(const PDense3DFrame pFrameData){
-    timer.start();
+    if(!_mutex.tryLock(10)) return;
+
+    queue->enqueue(1);
+//    if(queue->length() > 5) return;
+
     D3DFrame frame;
     Size frameSize(pFrameData->duoFrame->width,pFrameData->duoFrame->height);
     frame.leftImg = cv::Mat(frameSize, CV_8U, pFrameData->duoFrame->leftData);
@@ -76,9 +83,9 @@ void MainWindow::onNewFrame(const PDense3DFrame pFrameData){
         glDepthWidget->setImage(rgbBDisparity,0);
     }
 
+    ui->depth->setText(QString::number(queue->length()));
 
-
-    ui->depth->setText(QString::number(timer.elapsed()));
+    _mutex.unlock();
 }
 
 MainWindow::~MainWindow()

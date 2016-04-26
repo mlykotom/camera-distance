@@ -1,19 +1,20 @@
 #ifndef GLWIDGET_H
 #define GLWIDGET_H
 
-#include <QGLWidget>
+#include <QOpenGLWidget>
 #include <opencv2/opencv.hpp>
 #include <QPaintEngine>
 #include <QPaintEvent>
 #include <QTime>
-class GLWidget : public QGLWidget
+class GLWidget : public QOpenGLWidget
 {
     Q_OBJECT
 
 public:
-    GLWidget(bool showRect_,QWidget *parent = 0);
+    GLWidget(bool showRect_,QQueue<int> *queue, QWidget *parent = 0);
     QTime timer;
 
+    QQueue<int> *myQueue;
     QSize minimumSizeHint() const;
     QSize sizeHint() const;
 
@@ -25,7 +26,7 @@ signals:
 
 protected:
 
-    void paintEvent(QPaintEvent *event);
+    void paintEvent(QPaintEvent *event) Q_DECL_OVERRIDE;
 
 private:
     QImage _image;

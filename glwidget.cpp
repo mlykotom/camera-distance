@@ -1,15 +1,16 @@
 #include "glwidget.h"
 #include "QDebug"
+#include <QQueue>
 
-GLWidget::GLWidget(bool showRect_, QWidget *parent):
-    QGLWidget(QGLFormat(QGL::DoubleBuffer), parent),
+GLWidget::GLWidget(bool showRect_, QQueue<int> *queue, QWidget *parent):
+    QOpenGLWidget(parent),
     rectHeight(20),
     rectWidht(20),
-    showRect(showRect_)
+    showRect(showRect_),
+    myQueue(queue)
 {
     _image = QImage(QSize(200,90), QImage::Format_RGB888);
     _image.fill(Qt::white);
-
 
     rect = QRectF(0,0,rectWidht,rectHeight);
     textPoint = QPointF(0,0);
@@ -49,7 +50,7 @@ void GLWidget::setImage(const cv::Mat3b &image, double distance)
     update();
 }
 
-#define FRAME_TIMEOUT_MS 5
+#define FRAME_TIMEOUT_MS 10
 
 void GLWidget::paintEvent(QPaintEvent *event)
 {
@@ -67,7 +68,11 @@ void GLWidget::paintEvent(QPaintEvent *event)
         painter.drawText(textPoint,distanceString);
     }
 
-//    qDebug() << timer.elapsed();
+    //    qDebug() << timer.elapsed();
     painter.end();
+
+    if(myQueue->length() > 0){
+        myQueue->dequeue();
+    }
     _mutex.unlock();
 }

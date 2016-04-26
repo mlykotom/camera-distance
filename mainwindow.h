@@ -35,6 +35,8 @@ private:
     QMutex _mutex;
     QLabel *distanceLabel;
     QTime timer;
+    QQueue<int> *queue;
+    QQueue<int> *queue2;
 
     static void CALLBACK newFrameCallback(const PDense3DFrame pFrameData, void *pUserData){
         ((MainWindow *)pUserData)->onNewFrame(pFrameData);

@@ -17,8 +17,11 @@ MainWindow::MainWindow(QWidget *parent) :
 {
     ui->setupUi(this);
 
-    glWidget = new GLWidhget();
-    ui->glLayout->addWidget(glWidget,0,0);
+    glDistanceWidget = new GLWidhget(true,this);
+    ui->glDistanceLayout->addWidget(glDistanceWidget,0,0);
+
+    glDepthWidget = new GLWidhget(false,this);
+    ui->glDepthLayout->addWidget(glDepthWidget,0,0);
 
     colorLut = Mat(cv::Size(256, 1), CV_8UC3);
     prepareColorLut(&colorLut);
@@ -38,7 +41,7 @@ MainWindow::MainWindow(QWidget *parent) :
     p = Point(centerX, centerY);
 
     //connect(ui->out_left,SIGNAL(measuringPointCoordsChanged(int,int)),this,SLOT(onMeasuringPointCoordsChanged(int,int)));
-    connect(glWidget,SIGNAL(measuringPointCoordsChanged(int,int)),this,SLOT(onMeasuringPointCoordsChanged(int,int)));
+    connect(glDistanceWidget,SIGNAL(measuringPointCoordsChanged(int,int)),this,SLOT(onMeasuringPointCoordsChanged(int,int)));
 
 
 
@@ -48,7 +51,7 @@ void MainWindow::onNewFrame(const PDense3DFrame pFrameData){
 
     if(!_mutex.tryLock(50)) return;
 
-  //  QMutexLocker lock(&_mutex);
+    //  QMutexLocker lock(&_mutex);
 
     try{
         D3DFrame frame;
@@ -58,35 +61,37 @@ void MainWindow::onNewFrame(const PDense3DFrame pFrameData){
         frame.disparity = cv::Mat(frameSize, CV_32F, pFrameData->disparityData);
         frame.depth = cv::Mat(frameSize, CV_32FC3, pFrameData->depthData);
 
-        int disparities = (camera->getParams().numDisparities * 16);
 
-        cvtColor(frame.leftImg, _leftRGB, COLOR_GRAY2BGR);
+        if(ui->tabWidget->currentIndex() == 0){
+            cvtColor(frame.leftImg, _leftRGB, COLOR_GRAY2BGR);
+            //render
+            glDistanceWidget->setImage(_leftRGB,0);
 
-        // distance from depth map
-        cv::Vec3f chro = frame.depth.at<Vec3f>(p);
-        float depthPoint = chro[2] / 10.0;
+            // distance from depth map
+            cv::Vec3f chro = frame.depth.at<Vec3f>(p);
+            float depthPoint = chro[2] / 10.0;
 
+            //calculated distance
+            //        float focal_length_pixels = 2 * 360;
+            //        float baseline_mm = 30;
+            //        float depthCalculated = (baseline_mm * focal_length_pixels /
+            //                                 frame.disparity.at<float>(p)) / 100.0;
 
-        //calculated distance
-//        float focal_length_pixels = 2 * 360;
-//        float baseline_mm = 30;
-//        float depthCalculated = (baseline_mm * focal_length_pixels /
-//                                 frame.disparity.at<float>(p)) / 100.0;
+            //show distance
+            ui->depth->setText(QString::number(depthPoint));
+        }
 
-        //show distance
-        ui->depth->setText(QString::number(depthPoint));
+        if(ui->tabWidget->currentIndex() == 1){
+            int disparities = (camera->getParams().numDisparities * 16);
+            Mat disp8, rgbBDisparity;
+            frame.disparity.convertTo(disp8, CV_8UC1, 255.0 / disparities);
+            cv::cvtColor(disp8, rgbBDisparity, COLOR_GRAY2BGR);
+            //farebna hlbkova mapa
+            cv::LUT(rgbBDisparity, colorLut, rgbBDisparity);
+            //render
+           glDepthWidget->setImage(rgbBDisparity,0);
 
-
-//        Mat disp8, rgbBDisparity;
-//        frame.disparity.convertTo(disp8, CV_8UC1, 255.0 / disparities);
-//        cv::cvtColor(disp8, rgbBDisparity, COLOR_GRAY2BGR);
-
-        //farebna hlbkova mapa
-        //        cv::LUT(rgbBDisparity, colorLut, rgbBDisparity);
-
-        //zobrazenie
-        //ui->out_depth->setImage(rgbBDisparity,0);
-        glWidget->setImage(_leftRGB,0);
+        }
 
         _mutex.unlock();
     }

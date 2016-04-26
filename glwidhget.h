@@ -11,7 +11,7 @@ class GLWidhget : public QGLWidget
     Q_OBJECT
 
 public:
-    GLWidhget(QWidget *parent = 0);
+    GLWidhget(bool showRect_,QWidget *parent = 0);
 
     QSize minimumSizeHint() const;
     QSize sizeHint() const;
@@ -38,6 +38,8 @@ private:
     QRectF rect;
     int rectWidht;
     int rectHeight;
+
+    bool showRect;
 
 
 };

@@ -32,7 +32,8 @@ private:
     Mat colorLut;
     QPointF measuringPoint;
     Point p;
-    GLWidhget *glWidget;
+    GLWidhget *glDistanceWidget;
+    GLWidhget *glDepthWidget;
     QMutex _mutex;
     QLabel *distanceLabel;
 

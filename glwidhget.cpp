@@ -1,10 +1,11 @@
 #include "glwidhget.h"
 #include "QDebug"
 
-GLWidhget::GLWidhget(QWidget *parent):
+GLWidhget::GLWidhget(bool showRect_, QWidget *parent):
     QGLWidget(parent),
     rectHeight(20),
-    rectWidht(20)
+    rectWidht(20),
+    showRect(showRect_)
 {
     _image = QImage(QSize(200,90), QImage::Format_RGB888);
     _image.fill(Qt::white);
@@ -26,6 +27,8 @@ QSize GLWidhget::sizeHint() const
 
 void GLWidhget::mousePressEvent(QMouseEvent *e)
 {
+    if(!showRect) return;
+
     int x = e->pos().x()-10;
     int y = e->pos().y()-10;
     rect = QRectF(x,y,rectWidht,rectHeight);
@@ -50,8 +53,11 @@ void GLWidhget::paintEvent(QPaintEvent *event)
    // painter.drawRect(QRect(0,0,50,50));
     painter.drawImage(event->rect(),_image);
 
-    painter.setPen(Qt::red);
-    painter.drawRect(rect);
+    if(showRect){
+
+        painter.setPen(Qt::red);
+        painter.drawRect(rect);
+    }
 
 
     painter.end();

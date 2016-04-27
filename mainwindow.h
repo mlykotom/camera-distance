@@ -4,6 +4,7 @@
 #include <QMainWindow>
 #include <QDesktopWidget>
 #include <QtWidgets>
+#include <QQueue>
 
 #include <queue>
 #include <stdexcept>
@@ -28,21 +29,31 @@ private:
     StereoCamera *camera;
     cv::Mat _leftRGB, _depthRGB;
     Mat colorLut;
-    QPointF measuringPoint;
-    Point p;
+
+    float focal_length_pixels;
+    float baseline_mm;
+
     GLWidget *glDistanceWidget;
     GLWidget *glDepthWidget;
     QMutex _mutex;
     QLabel *distanceLabel;
+
+    Point p;
+    QList<Point> measuringPointsList;
+    QList<QString> *distancesList;
+
     QTime timer;
     QQueue<int> *queue;
     QQueue<int> *queue2;
+
 
     static void CALLBACK newFrameCallback(const PDense3DFrame pFrameData, void *pUserData){
         ((MainWindow *)pUserData)->onNewFrame(pFrameData);
     }
 
     void onNewFrame(const PDense3DFrame pFrameData);
+    float buildInDistance(cv::Vec3f chro);
+    float computedDistance(float disparity);
 
 
 public:

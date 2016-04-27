@@ -6,39 +6,39 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>672</width>
-    <height>427</height>
+    <width>709</width>
+    <height>425</height>
    </rect>
   </property>
   <property name="windowTitle">
    <string>MainWindow</string>
   </property>
   <widget class="QWidget" name="centralWidget">
-   <layout class="QGridLayout" name="gridLayout">
-    <item row="0" column="0">
+   <layout class="QVBoxLayout" name="verticalLayout_5">
+    <item>
      <widget class="QTabWidget" name="tabWidget">
       <property name="currentIndex">
        <number>0</number>
       </property>
       <widget class="QWidget" name="distanceTab">
        <attribute name="title">
-        <string>Vzdialenosť</string>
+        <string>Distance</string>
        </attribute>
-       <layout class="QGridLayout" name="gridLayout_2">
-        <item row="1" column="1">
+       <layout class="QGridLayout" name="gridLayout">
+        <item row="1" column="0">
          <widget class="QLabel" name="label">
           <property name="sizePolicy">
-           <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
+           <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
             <horstretch>0</horstretch>
             <verstretch>0</verstretch>
            </sizepolicy>
           </property>
           <property name="text">
-           <string>Vzdialenosť [cm]:</string>
+           <string>Distance [cm]:</string>
           </property>
          </widget>
         </item>
-        <item row="1" column="2">
+        <item row="1" column="1">
          <widget class="QLabel" name="depth">
           <property name="sizePolicy">
            <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
@@ -51,24 +51,127 @@
           </property>
          </widget>
         </item>
-        <item row="2" column="1">
-         <widget class="QCheckBox" name="swapVerticalCheckbox">
-          <property name="text">
-           <string>Swap vertical</string>
+        <item row="2" column="0" colspan="2">
+         <widget class="QGroupBox" name="groupBox">
+          <property name="sizePolicy">
+           <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
+            <horstretch>0</horstretch>
+            <verstretch>0</verstretch>
+           </sizepolicy>
           </property>
-          <property name="checked">
-           <bool>false</bool>
+          <property name="title">
+           <string>Measuring point</string>
           </property>
+          <layout class="QVBoxLayout" name="verticalLayout">
+           <item>
+            <widget class="QRadioButton" name="singleMeasuringPoint">
+             <property name="text">
+              <string>Single point</string>
+             </property>
+             <property name="checked">
+              <bool>true</bool>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <widget class="QRadioButton" name="multipleMeasuringPoints">
+             <property name="text">
+              <string>Multiple points</string>
+             </property>
+            </widget>
+           </item>
+          </layout>
          </widget>
         </item>
-        <item row="3" column="1">
+        <item row="2" column="2">
+         <widget class="QGroupBox" name="groupBox_2">
+          <property name="sizePolicy">
+           <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
+            <horstretch>0</horstretch>
+            <verstretch>0</verstretch>
+           </sizepolicy>
+          </property>
+          <property name="title">
+           <string>Measuring method</string>
+          </property>
+          <layout class="QVBoxLayout" name="verticalLayout_2">
+           <item>
+            <widget class="QRadioButton" name="buildMeasuring">
+             <property name="text">
+              <string>Build-in</string>
+             </property>
+             <property name="checked">
+              <bool>true</bool>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <widget class="QRadioButton" name="computedMeasuring">
+             <property name="text">
+              <string>Computed</string>
+             </property>
+            </widget>
+           </item>
+          </layout>
+         </widget>
+        </item>
+        <item row="0" column="0" colspan="3">
+         <layout class="QGridLayout" name="glDistanceLayout"/>
+        </item>
+       </layout>
+      </widget>
+      <widget class="QWidget" name="depthTab">
+       <attribute name="title">
+        <string>Depth</string>
+       </attribute>
+       <layout class="QGridLayout" name="gridLayout_4">
+        <item row="0" column="0">
+         <layout class="QGridLayout" name="glDepthLayout"/>
+        </item>
+       </layout>
+      </widget>
+     </widget>
+    </item>
+    <item>
+     <widget class="QCheckBox" name="swapVerticalCheckbox">
+      <property name="text">
+       <string>Swap vertical</string>
+      </property>
+      <property name="checked">
+       <bool>false</bool>
+      </property>
+     </widget>
+    </item>
+    <item>
+     <layout class="QHBoxLayout" name="horizontalLayout">
+      <item>
+       <layout class="QVBoxLayout" name="verticalLayout_3">
+        <item>
          <widget class="QLabel" name="label_2">
           <property name="text">
            <string>LED</string>
           </property>
          </widget>
         </item>
-        <item row="3" column="2">
+        <item>
+         <widget class="QLabel" name="label_3">
+          <property name="text">
+           <string>Gain</string>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QLabel" name="label_4">
+          <property name="text">
+           <string>Exposure</string>
+          </property>
+         </widget>
+        </item>
+       </layout>
+      </item>
+      <item>
+       <layout class="QVBoxLayout" name="verticalLayout_4">
+        <item>
          <widget class="QSlider" name="ledSlider">
           <property name="maximum">
            <number>1000</number>
@@ -84,14 +187,7 @@
           </property>
          </widget>
         </item>
-        <item row="4" column="1">
-         <widget class="QLabel" name="label_3">
-          <property name="text">
-           <string>Gain</string>
-          </property>
-         </widget>
-        </item>
-        <item row="4" column="2">
+        <item>
          <widget class="QSlider" name="gainSlider">
           <property name="maximum">
            <number>1000</number>
@@ -107,14 +203,7 @@
           </property>
          </widget>
         </item>
-        <item row="5" column="1">
-         <widget class="QLabel" name="label_4">
-          <property name="text">
-           <string>Exposure</string>
-          </property>
-         </widget>
-        </item>
-        <item row="5" column="2">
+        <item>
          <widget class="QSlider" name="exposureSlider">
           <property name="maximum">
            <number>1000</number>
@@ -133,22 +222,9 @@
           </property>
          </widget>
         </item>
-        <item row="0" column="0" colspan="3">
-         <layout class="QGridLayout" name="glDistanceLayout"/>
-        </item>
        </layout>
-      </widget>
-      <widget class="QWidget" name="depthTab">
-       <attribute name="title">
-        <string>Hĺbka</string>
-       </attribute>
-       <layout class="QGridLayout" name="gridLayout_4">
-        <item row="0" column="0">
-         <layout class="QGridLayout" name="glDepthLayout"/>
-        </item>
-       </layout>
-      </widget>
-     </widget>
+      </item>
+     </layout>
     </item>
    </layout>
   </widget>

@@ -53,8 +53,7 @@ private:
     void onNewFrame(const PDense3DFrame pFrameData);
     float buildInDistance(cv::Vec3f chro);
     float computedDistance(float disparity);
-
-
+    void createMenu();
 
 public:
     explicit MainWindow(QWidget *parent = 0);
@@ -71,6 +70,7 @@ private slots:
     void on_gainSlider_valueChanged(int value);
     void on_exposureSlider_valueChanged(int value);
     void on_swapVerticalCheckbox_clicked(bool checked);
+    void showAuthorsDialog();
 };
 
 #endif // MAINWINDOW_H

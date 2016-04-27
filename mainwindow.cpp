@@ -15,7 +15,8 @@ MainWindow::MainWindow(QWidget *parent) :
     camera(NULL)
 {
     ui->setupUi(this);
-
+    this->setWindowTitle("ZPO 2016");
+    createMenu();
 
     distancesList = new QList<QString>();
 
@@ -47,6 +48,8 @@ MainWindow::MainWindow(QWidget *parent) :
             glDistanceWidget,SLOT(onNumberOfMeasuringPointsChanged(bool)));
     connect(ui->connectCameraButton,SIGNAL(clicked()),this,SLOT(setUpCamera()));
 }
+
+
 
 void MainWindow::setUpCamera()
 {
@@ -131,6 +134,28 @@ void MainWindow::onNewFrame(const PDense3DFrame pFrameData){
 }
 
 
+void MainWindow::createMenu()
+{
+    QAction *closeAct = new QAction(tr("&Close"), this);
+    closeAct->setStatusTip(tr("Close program"));
+    connect(closeAct, &QAction::triggered, this, &MainWindow::close);
+
+    QMenu *fileMenu = menuBar()->addMenu(tr("&File"));
+    fileMenu->addAction(closeAct);
+
+    QAction *authorsAct = new QAction(tr("&Authors"), this);
+    authorsAct->setStatusTip(tr("About Authors"));
+    connect(authorsAct, SIGNAL(triggered()), this, SLOT(showAuthorsDialog()));
+
+    QAction *aboutAct = new QAction(tr("&About"), this);
+    aboutAct->setStatusTip(tr("About Qt"));
+    connect(aboutAct, SIGNAL(triggered()), qApp, SLOT(aboutQt()));
+
+    QMenu *helpMenu = menuBar()->addMenu(tr("&Help"));
+    helpMenu->addAction(authorsAct);
+    helpMenu->addAction(aboutAct);
+}
+
 
 float MainWindow::buildInDistance(Vec3f chro)
 {
@@ -142,6 +167,8 @@ float MainWindow::computedDistance(float disparity)
 {
     return ((baseline_mm * focal_length_pixels / disparity) / 100.0);
 }
+
+
 
 
 
@@ -188,6 +215,16 @@ void MainWindow::on_swapVerticalCheckbox_clicked(bool checked)
 {
     camera->setVerticalFlip(checked);
     qDebug() << camera->getVerticalFlip();
+}
+
+void MainWindow::showAuthorsDialog()
+{
+    QMessageBox msgBox;
+    msgBox.setWindowTitle("Authors");
+    msgBox.setText("Authors:\n"
+                   "Roman Čižmarik, xcizma04 \n"
+                   "Tomáš Mlynarič, xmylna06");
+    msgBox.exec();
 }
 
 /**

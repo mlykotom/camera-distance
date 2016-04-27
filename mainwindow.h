@@ -43,8 +43,7 @@ private:
     QList<QString> *distancesList;
 
     QTime timer;
-    QQueue<int> *queue;
-    QQueue<int> *queue2;
+
 
 
     static void CALLBACK newFrameCallback(const PDense3DFrame pFrameData, void *pUserData){
@@ -56,6 +55,7 @@ private:
     float computedDistance(float disparity);
 
 
+
 public:
     explicit MainWindow(QWidget *parent = 0);
     ~MainWindow();
@@ -64,6 +64,7 @@ public:
 
 public slots:
     void onMeasuringPointCoordsChanged(int x, int y);
+    void setUpCamera();
 
 private slots:
     void on_ledSlider_valueChanged(int value);

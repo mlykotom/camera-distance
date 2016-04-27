@@ -11,10 +11,9 @@ class GLWidget : public QGLWidget
     Q_OBJECT
 
 public:
-    GLWidget(bool showRect_, QList<QString> *distanceStringsList_, QQueue<int> *queue, QWidget *parent = 0);
+    GLWidget(bool showRect_, QList<QString> *distanceStringsList_, QWidget *parent = 0);
     QTime timer;
 
-    QQueue<int> *myQueue;
     QSize minimumSizeHint() const;
     QSize sizeHint() const;
 

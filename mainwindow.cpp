@@ -16,15 +16,13 @@ MainWindow::MainWindow(QWidget *parent) :
 {
     ui->setupUi(this);
 
-    queue = new QQueue<int>();
-    queue2 = new QQueue<int>();
 
     distancesList = new QList<QString>();
 
-    glDistanceWidget = new GLWidget(true,distancesList, queue, this);
+    glDistanceWidget = new GLWidget(true,distancesList, this);
     ui->glDistanceLayout->addWidget(glDistanceWidget,0,0);
 
-    glDepthWidget = new GLWidget(false,NULL, queue2, this);
+    glDepthWidget = new GLWidget(false,NULL, this);
     ui->glDepthLayout->addWidget(glDepthWidget,0,0);
 
     colorLut = Mat(cv::Size(256, 1), CV_8UC3);
@@ -32,9 +30,7 @@ MainWindow::MainWindow(QWidget *parent) :
 
     try{
         camera = new StereoCamera(WIDTH, HEIGHT, FPS, LICENSE);
-        camera->open();
-        camera->setParams();
-        camera->start(newFrameCallback, this);
+        setUpCamera();
     } catch(std::invalid_argument * error){
         QMessageBox::warning(this, "Invalid argument", error->what());
     }
@@ -49,6 +45,21 @@ MainWindow::MainWindow(QWidget *parent) :
     connect(glDistanceWidget,SIGNAL(measuringPointCoordsChanged(int,int)),this,SLOT(onMeasuringPointCoordsChanged(int,int)));
     connect(this->ui->multipleMeasuringPoints,SIGNAL(toggled(bool)),
             glDistanceWidget,SLOT(onNumberOfMeasuringPointsChanged(bool)));
+    connect(ui->connectCameraButton,SIGNAL(clicked()),this,SLOT(setUpCamera()));
+}
+
+void MainWindow::setUpCamera()
+{
+    try{
+        if(camera == NULL)
+            camera = new StereoCamera(WIDTH, HEIGHT, FPS, LICENSE);
+
+        camera->open();
+        camera->setParams();
+        camera->start(newFrameCallback, this);
+    } catch(std::invalid_argument * error){
+        QMessageBox::warning(this, "Invalid argument", error->what());
+    }
 }
 
 void MainWindow::onNewFrame(const PDense3DFrame pFrameData){
@@ -119,6 +130,8 @@ void MainWindow::onNewFrame(const PDense3DFrame pFrameData){
     _mutex.unlock();
 }
 
+
+
 float MainWindow::buildInDistance(Vec3f chro)
 {
     //cv::Vec3f chro = frame.depth.at<Vec3f>(p);
@@ -130,11 +143,14 @@ float MainWindow::computedDistance(float disparity)
     return ((baseline_mm * focal_length_pixels / disparity) / 100.0);
 }
 
+
+
 MainWindow::~MainWindow()
 {
     //tu to pada pri zavreni okna
     //    if (camera != NULL)
     //            delete camera;
+    delete distancesList;
     delete ui;
 }
 
@@ -176,8 +192,5 @@ void MainWindow::on_swapVerticalCheckbox_clicked(bool checked)
 
 /**
 *   TODO:
-*
-*   radiobutton na vypocitanu / depth vzdialenost
-*   retry camera - vyskakovacie okno
 *
 */

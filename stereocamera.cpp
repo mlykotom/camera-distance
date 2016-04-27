@@ -45,12 +45,13 @@ void StereoCamera::open(){
 void StereoCamera::setParams(){
     params.scale = 0;
     params.mode = 3;
-    params.sadWindowSize = 3;
-    params.numDisparities = 9;
-    params.preFilterCap = 63;
-    params.uniqenessRatio = 10;
-    params.speckleWindowSize = 100;
+    params.sadWindowSize = 1;
+    params.numDisparities = 2;
+    params.preFilterCap = 0;
+    params.uniqenessRatio = 72;
+    params.speckleWindowSize = 41;
     params.speckleRange = 32;
+
     if (!SetDense3Params(dense, params)) {
         Dense3DClose(dense);
         throw new std::invalid_argument("GetDense3Params error");
@@ -62,22 +63,22 @@ void StereoCamera::setParams(){
     qDebug() << "Frame Dimension: [" << w << "," << h << "]";
 
     // Set exposure, LED brightness and camera orientation
-    this->setLed(45);
-    this->setGain(0);
-    this->setExposure(50);
+    this->setLed(30);
+    this->setGain(34);
+    this->setExposure(45);
     this->setUndistort(true);
     this->setVerticalFlip(false);
 }
 
 StereoCamera::~StereoCamera(){
     if(duo != NULL){
-        CloseDUO(duo);
         StopDUO(duo);
+        CloseDUO(duo);
     }
 
     if(dense != NULL){
-        Dense3DClose(dense);
         Dense3DStop(dense);
+        Dense3DClose(dense);
     }
 }
 

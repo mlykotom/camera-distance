@@ -6,133 +6,16 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>709</width>
-    <height>425</height>
+    <width>816</width>
+    <height>497</height>
    </rect>
   </property>
   <property name="windowTitle">
    <string>MainWindow</string>
   </property>
   <widget class="QWidget" name="centralWidget">
-   <layout class="QVBoxLayout" name="verticalLayout_5">
-    <item>
-     <widget class="QTabWidget" name="tabWidget">
-      <property name="currentIndex">
-       <number>0</number>
-      </property>
-      <widget class="QWidget" name="distanceTab">
-       <attribute name="title">
-        <string>Distance</string>
-       </attribute>
-       <layout class="QGridLayout" name="gridLayout">
-        <item row="1" column="0">
-         <widget class="QLabel" name="label">
-          <property name="sizePolicy">
-           <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
-            <horstretch>0</horstretch>
-            <verstretch>0</verstretch>
-           </sizepolicy>
-          </property>
-          <property name="text">
-           <string>Distance [cm]:</string>
-          </property>
-         </widget>
-        </item>
-        <item row="1" column="1">
-         <widget class="QLabel" name="depth">
-          <property name="sizePolicy">
-           <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
-            <horstretch>0</horstretch>
-            <verstretch>0</verstretch>
-           </sizepolicy>
-          </property>
-          <property name="text">
-           <string>0.0</string>
-          </property>
-         </widget>
-        </item>
-        <item row="2" column="0" colspan="2">
-         <widget class="QGroupBox" name="groupBox">
-          <property name="sizePolicy">
-           <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
-            <horstretch>0</horstretch>
-            <verstretch>0</verstretch>
-           </sizepolicy>
-          </property>
-          <property name="title">
-           <string>Measuring point</string>
-          </property>
-          <layout class="QVBoxLayout" name="verticalLayout">
-           <item>
-            <widget class="QRadioButton" name="singleMeasuringPoint">
-             <property name="text">
-              <string>Single point</string>
-             </property>
-             <property name="checked">
-              <bool>true</bool>
-             </property>
-            </widget>
-           </item>
-           <item>
-            <widget class="QRadioButton" name="multipleMeasuringPoints">
-             <property name="text">
-              <string>Multiple points</string>
-             </property>
-            </widget>
-           </item>
-          </layout>
-         </widget>
-        </item>
-        <item row="2" column="2">
-         <widget class="QGroupBox" name="groupBox_2">
-          <property name="sizePolicy">
-           <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
-            <horstretch>0</horstretch>
-            <verstretch>0</verstretch>
-           </sizepolicy>
-          </property>
-          <property name="title">
-           <string>Measuring method</string>
-          </property>
-          <layout class="QVBoxLayout" name="verticalLayout_2">
-           <item>
-            <widget class="QRadioButton" name="buildMeasuring">
-             <property name="text">
-              <string>Build-in</string>
-             </property>
-             <property name="checked">
-              <bool>true</bool>
-             </property>
-            </widget>
-           </item>
-           <item>
-            <widget class="QRadioButton" name="computedMeasuring">
-             <property name="text">
-              <string>Computed</string>
-             </property>
-            </widget>
-           </item>
-          </layout>
-         </widget>
-        </item>
-        <item row="0" column="0" colspan="3">
-         <layout class="QGridLayout" name="glDistanceLayout"/>
-        </item>
-       </layout>
-      </widget>
-      <widget class="QWidget" name="depthTab">
-       <attribute name="title">
-        <string>Depth</string>
-       </attribute>
-       <layout class="QGridLayout" name="gridLayout_4">
-        <item row="0" column="0">
-         <layout class="QGridLayout" name="glDepthLayout"/>
-        </item>
-       </layout>
-      </widget>
-     </widget>
-    </item>
-    <item>
+   <layout class="QGridLayout" name="gridLayout">
+    <item row="1" column="0">
      <widget class="QCheckBox" name="swapVerticalCheckbox">
       <property name="text">
        <string>Swap vertical</string>
@@ -142,7 +25,25 @@
       </property>
      </widget>
     </item>
-    <item>
+    <item row="3" column="1">
+     <layout class="QHBoxLayout" name="horizontalLayout_3">
+      <item>
+       <widget class="QPushButton" name="connectCameraButton">
+        <property name="text">
+         <string>Connect camera</string>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QPushButton" name="closeButton">
+        <property name="text">
+         <string>Close</string>
+        </property>
+       </widget>
+      </item>
+     </layout>
+    </item>
+    <item row="2" column="0" colspan="2">
      <layout class="QHBoxLayout" name="horizontalLayout">
       <item>
        <layout class="QVBoxLayout" name="verticalLayout_3">
@@ -174,13 +75,13 @@
         <item>
          <widget class="QSlider" name="ledSlider">
           <property name="maximum">
-           <number>1000</number>
+           <number>100</number>
           </property>
           <property name="singleStep">
-           <number>5</number>
+           <number>1</number>
           </property>
           <property name="value">
-           <number>100</number>
+           <number>30</number>
           </property>
           <property name="orientation">
            <enum>Qt::Horizontal</enum>
@@ -190,13 +91,13 @@
         <item>
          <widget class="QSlider" name="gainSlider">
           <property name="maximum">
-           <number>1000</number>
+           <number>100</number>
           </property>
           <property name="singleStep">
-           <number>5</number>
+           <number>1</number>
           </property>
           <property name="value">
-           <number>500</number>
+           <number>34</number>
           </property>
           <property name="orientation">
            <enum>Qt::Horizontal</enum>
@@ -206,16 +107,16 @@
         <item>
          <widget class="QSlider" name="exposureSlider">
           <property name="maximum">
-           <number>1000</number>
+           <number>100</number>
           </property>
           <property name="singleStep">
-           <number>5</number>
+           <number>1</number>
           </property>
           <property name="pageStep">
            <number>10</number>
           </property>
           <property name="value">
-           <number>500</number>
+           <number>45</number>
           </property>
           <property name="orientation">
            <enum>Qt::Horizontal</enum>
@@ -225,6 +126,127 @@
        </layout>
       </item>
      </layout>
+    </item>
+    <item row="0" column="0" colspan="2">
+     <widget class="QTabWidget" name="tabWidget">
+      <property name="currentIndex">
+       <number>0</number>
+      </property>
+      <widget class="QWidget" name="distanceTab">
+       <attribute name="title">
+        <string>Distance</string>
+       </attribute>
+       <layout class="QGridLayout" name="gridLayout_2">
+        <item row="0" column="1">
+         <widget class="QGroupBox" name="groupBox_2">
+          <property name="sizePolicy">
+           <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+            <horstretch>0</horstretch>
+            <verstretch>0</verstretch>
+           </sizepolicy>
+          </property>
+          <property name="title">
+           <string>Measuring method</string>
+          </property>
+          <layout class="QVBoxLayout" name="verticalLayout_2">
+           <item>
+            <widget class="QRadioButton" name="buildMeasuring">
+             <property name="text">
+              <string>Build-in</string>
+             </property>
+             <property name="checked">
+              <bool>true</bool>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <widget class="QRadioButton" name="computedMeasuring">
+             <property name="text">
+              <string>Computed</string>
+             </property>
+            </widget>
+           </item>
+          </layout>
+         </widget>
+        </item>
+        <item row="1" column="1">
+         <widget class="QGroupBox" name="groupBox">
+          <property name="sizePolicy">
+           <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+            <horstretch>0</horstretch>
+            <verstretch>0</verstretch>
+           </sizepolicy>
+          </property>
+          <property name="title">
+           <string>Measuring point</string>
+          </property>
+          <layout class="QVBoxLayout" name="verticalLayout">
+           <item>
+            <widget class="QRadioButton" name="singleMeasuringPoint">
+             <property name="text">
+              <string>Single point</string>
+             </property>
+             <property name="checked">
+              <bool>true</bool>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <widget class="QRadioButton" name="multipleMeasuringPoints">
+             <property name="text">
+              <string>Multiple points</string>
+             </property>
+            </widget>
+           </item>
+          </layout>
+         </widget>
+        </item>
+        <item row="2" column="1">
+         <layout class="QHBoxLayout" name="horizontalLayout_2">
+          <item>
+           <widget class="QLabel" name="label">
+            <property name="sizePolicy">
+             <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+              <horstretch>0</horstretch>
+              <verstretch>0</verstretch>
+             </sizepolicy>
+            </property>
+            <property name="text">
+             <string>Distance [cm]:</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QLabel" name="depth">
+            <property name="sizePolicy">
+             <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+              <horstretch>0</horstretch>
+              <verstretch>0</verstretch>
+             </sizepolicy>
+            </property>
+            <property name="text">
+             <string>0.0</string>
+            </property>
+           </widget>
+          </item>
+         </layout>
+        </item>
+        <item row="0" column="0" rowspan="3">
+         <layout class="QGridLayout" name="glDistanceLayout" columnstretch="0"/>
+        </item>
+       </layout>
+      </widget>
+      <widget class="QWidget" name="depthTab">
+       <attribute name="title">
+        <string>Depth</string>
+       </attribute>
+       <layout class="QGridLayout" name="gridLayout_4">
+        <item row="0" column="0">
+         <layout class="QGridLayout" name="glDepthLayout"/>
+        </item>
+       </layout>
+      </widget>
+     </widget>
     </item>
    </layout>
   </widget>
@@ -239,5 +261,22 @@
  </widget>
  <layoutdefault spacing="6" margin="11"/>
  <resources/>
- <connections/>
+ <connections>
+  <connection>
+   <sender>closeButton</sender>
+   <signal>clicked()</signal>
+   <receiver>MainWindow</receiver>
+   <slot>close()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>407</x>
+     <y>421</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>503</x>
+     <y>422</y>
+    </hint>
+   </hints>
+  </connection>
+ </connections>
 </ui>

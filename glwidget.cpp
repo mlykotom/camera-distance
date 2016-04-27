@@ -4,19 +4,18 @@
 
 #define FRAME_TIMEOUT_MS 10
 
-GLWidget::GLWidget(bool showRect_, QList<QString> *distanceStringsList_, QQueue<int> *queue, QWidget *parent):
+GLWidget::GLWidget(bool showRect_, QList<QString> *distanceStringsList_, QWidget *parent):
     QGLWidget(QGLFormat(QGL::DoubleBuffer),parent),
     rectHeight(20),
     rectWidht(20),
     showRect(showRect_),
     multipleMeasuringPoints(false),
-    distanceStringsList(distanceStringsList_),
-    myQueue(queue)
+    distanceStringsList(distanceStringsList_)
 {
     _image = QImage(QSize(200,90), QImage::Format_RGB888);
     _image.fill(Qt::white);
 
-    singleRect = QRectF(0,0,rectWidht,rectHeight);
+   // singleRect = QRectF(0,0,rectWidht,rectHeight);
     singleTextPoint = QPointF(0,0);
     singleDistanceString = "";
 
@@ -116,9 +115,7 @@ void GLWidget::paintEvent(QPaintEvent *event)
     //    qDebug() << timer.elapsed();
     painter.end();
 
-    if(myQueue->length() > 0){
-        myQueue->dequeue();
-    }
+
     _mutex.unlock();
 
 

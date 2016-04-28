@@ -23,6 +23,7 @@ public:
 
 public slots:
     void onNumberOfMeasuringPointsChanged(bool multipleMeasuringPoints_);
+    void onPointsClear();
 
 signals:
     void measuringPointCoordsChanged(int x, int y);
@@ -49,6 +50,8 @@ private:
 
     bool showRect;
     bool multipleMeasuringPoints;
+
+
 };
 
 #endif // GLWIDGET_H

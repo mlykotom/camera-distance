@@ -60,11 +60,7 @@ void GLWidget::mousePressEvent(QMouseEvent *e)
 void GLWidget::setImage(const cv::Mat3b &image, double distance)
 {
     _image = QImage(image.data, image.cols, image.rows, QImage::Format_RGB888);
-
-//    if(multipleMeasuringPoints)
-//        distanceStringsList.last() = QString::number(distance,'f',2);
-//    else
-        singleDistanceString = QString::number(distance,'f',2);
+    singleDistanceString = QString::number(distance,'f',2);
 
     update();
 }
@@ -73,10 +69,6 @@ void GLWidget::setImage(const cv::Mat3b &image)
 {
 
     _image = QImage(image.data, image.cols, image.rows, QImage::Format_RGB888);
-   // distanceStringsList = distances;
-//    qDebug()<<"tu este som";
-//    qCopy(distances.begin(),distances.end(),distanceStringsList.begin());
-//    qDebug()<<"tu uz ne";
     update();
 
 }
@@ -84,6 +76,24 @@ void GLWidget::setImage(const cv::Mat3b &image)
 void GLWidget::onNumberOfMeasuringPointsChanged(bool multipleMeasuringPoints_)
 {
     multipleMeasuringPoints = multipleMeasuringPoints_;
+
+    // multiple points turned on
+    if(multipleMeasuringPoints_){
+
+        //hide single rect
+        singleRect = QRectF();
+        singleTextPoint = QPointF();
+
+    }
+    else{
+        //clear multiple points
+
+        rectList.clear();
+        textPointsList.clear();
+        distanceStringsList->clear();
+    }
+
+    update();
 }
 
 
@@ -119,5 +129,15 @@ void GLWidget::paintEvent(QPaintEvent *event)
     _mutex.unlock();
 
 
+}
+
+void GLWidget::onPointsClear()
+{
+    rectList.clear();
+    textPointsList.clear();
+    distanceStringsList->clear();
+
+    singleRect = QRectF();
+    singleTextPoint = QPointF();
 }
 

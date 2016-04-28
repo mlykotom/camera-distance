@@ -198,6 +198,13 @@
              </property>
             </widget>
            </item>
+           <item>
+            <widget class="QPushButton" name="clearPoints">
+             <property name="text">
+              <string>Clear all</string>
+             </property>
+            </widget>
+           </item>
           </layout>
          </widget>
         </item>

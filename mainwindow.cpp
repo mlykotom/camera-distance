@@ -47,6 +47,7 @@ MainWindow::MainWindow(QWidget *parent) :
     connect(this->ui->multipleMeasuringPoints,SIGNAL(toggled(bool)),
             glDistanceWidget,SLOT(onNumberOfMeasuringPointsChanged(bool)));
     connect(ui->connectCameraButton,SIGNAL(clicked()),this,SLOT(setUpCamera()));
+    connect(ui->clearPoints,SIGNAL(clicked()),glDistanceWidget,SLOT(onPointsClear()));
 }
 
 
@@ -211,7 +212,6 @@ void MainWindow::on_exposureSlider_valueChanged(int value)
 void MainWindow::on_swapVerticalCheckbox_clicked(bool checked)
 {
     camera->setVerticalFlip(checked);
-    qDebug() << camera->getVerticalFlip();
 }
 
 void MainWindow::showAuthorsDialog()

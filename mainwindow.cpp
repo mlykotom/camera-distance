@@ -195,20 +195,17 @@ void MainWindow::onMeasuringPointCoordsChanged(int x, int y)
 
 void MainWindow::on_ledSlider_valueChanged(int value)
 {
-    camera->setLed(value* 0.1);
-    qDebug() << camera->getLed();
+    camera->setLed(value*0.1);
 }
 
 void MainWindow::on_gainSlider_valueChanged(int value)
 {
-    camera->setGain(value* 0.1);
-    qDebug() << camera->getGain();
+    camera->setGain(value*0.1);
 }
 
 void MainWindow::on_exposureSlider_valueChanged(int value)
 {
-    camera->setExposure(value* 0.1);
-    qDebug() << camera->getExposure();
+    camera->setExposure(value*0.1);
 }
 
 void MainWindow::on_swapVerticalCheckbox_clicked(bool checked)

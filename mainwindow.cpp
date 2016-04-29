@@ -21,6 +21,7 @@ MainWindow::MainWindow(QWidget *parent) :
     distancesList = new QList<QString>();
 
     distanceQueue = new QQueue<QImage>();
+    distQueue = new QQueue<QPair<QImage, float>>();
     depthQueue = new QQueue<QImage>();
 
     glDistanceWidget = new GLWidget(true,distancesList,distanceQueue, this);
@@ -69,10 +70,13 @@ void MainWindow::setUpCamera()
     } catch(std::invalid_argument * error){
         QMessageBox::warning(this, "Invalid argument", error->what());
     }
-
-
 }
 
+/**
+ * Calculating and rendering distance data
+ * @brief MainWindow::distanceCalculation
+ * @param pFrameData frame got from DUO camera
+ */
 void inline MainWindow::distanceCalculation(const PDense3DFrame pFrameData){
     Size frameSize(pFrameData->duoFrame->width,pFrameData->duoFrame->height);
 
@@ -113,6 +117,11 @@ void inline MainWindow::distanceCalculation(const PDense3DFrame pFrameData){
 //    }
 }
 
+/**
+ * Calculating depth map from disparity map
+ * @brief MainWindow::depthCalculation
+ * @param pFrameData frame from DUO camera
+ */
 void inline MainWindow::depthCalculation(const PDense3DFrame pFrameData){
     Size frameSize(pFrameData->duoFrame->width,pFrameData->duoFrame->height);
     cv::Mat disparityMat = cv::Mat(frameSize, CV_32F, pFrameData->disparityData);
@@ -168,11 +177,6 @@ void MainWindow::createMenu()
     helpMenu->addAction(aboutAct);
 }
 
-
-QThread *MainWindow::getMainThread()
-{
-    return qApp->thread();
-}
 
 void MainWindow::onMeasuringPointCoordsChanged(int x, int y)
 {

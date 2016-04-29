@@ -45,6 +45,7 @@ private:
 
     QQueue<QImage> *distanceQueue;
     QQueue<QImage> *depthQueue;
+    QQueue<QPair<QImage, float>> *distQueue;
 
     static void CALLBACK newFrameCallback(const PDense3DFrame pFrameData, void *pUserData){
         ((MainWindow *)pUserData)->onNewFrame(pFrameData);

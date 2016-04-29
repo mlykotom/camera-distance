@@ -12,7 +12,6 @@ GLWidget::GLWidget(bool showRect_, QList<QString> *distanceStringsList_, QQueue<
     multipleMeasuringPoints(false),
     distanceStringsList(distanceStringsList_),
     q(q_),
-    tex(NULL),
     texture(NULL)
 {
     _image = QImage(QSize(200,90), QImage::Format_RGB888);
@@ -21,19 +20,16 @@ GLWidget::GLWidget(bool showRect_, QList<QString> *distanceStringsList_, QQueue<
     // singleRect = QRectF(0,0,rectWidht,rectHeight);
     singleTextPoint = QPointF(0,0);
     singleDistanceString = "";
-
 }
 
 QSize GLWidget::minimumSizeHint() const
 {
     return QSize(50, 50);
-
 }
 
 QSize GLWidget::sizeHint() const
 {
     return QSize(300, 200);
-
 }
 
 void GLWidget::mousePressEvent(QMouseEvent *e)
@@ -63,19 +59,6 @@ void GLWidget::setImage(const cv::Mat3b &image, double distance)
 {
     _image = QImage(image.data, image.cols, image.rows, QImage::Format_RGB888);
     singleDistanceString = QString::number(distance,'f',2);
-
-    //update();
-    updateGL();
-
-}
-
-void GLWidget::setImage(const cv::Mat3b &image)
-{
-
-    QMutexLocker locker(&_mutex);
-
-    _image = QImage(image.data, image.cols, image.rows, QImage::Format_RGB888);
-
 
     //update();
     updateGL();
@@ -117,14 +100,15 @@ void GLWidget::onPointsClear()
 
 void GLWidget::onNewFrame()
 {
-    //todo
-   // _image = q->dequeue().toImage();
+    if(q->empty()) {
+        // skipping empty queue, that should not happen
+        return;
+    }
 
     if(texture == NULL){
         texture = new QOpenGLTexture(q->dequeue());
         texture->setMinificationFilter(QOpenGLTexture::LinearMipMapLinear);
         texture->setMagnificationFilter(QOpenGLTexture::Linear);
-
     }
     else{
         texture->destroy();
@@ -148,7 +132,7 @@ void GLWidget::initializeGL()
 #endif
 
     int side = qMin(this->width(), this->height());
-     glViewport((this->width() - side) / 2, (this->height() - side) / 2, side, side);
+    glViewport((this->width() - side) / 2, (this->height() - side) / 2, side, side);
 }
 
 void GLWidget::paintGL()

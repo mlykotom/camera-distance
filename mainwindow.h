@@ -32,6 +32,7 @@ private:
 
     float focal_length_pixels;
     float baseline_mm;
+    int disparities;
 
     GLWidget *glDistanceWidget;
     GLWidget *glDepthWidget;
@@ -42,7 +43,6 @@ private:
     QList<Point> measuringPointsList;
     QList<QString> *distancesList;
 
-    QTime timer;
     QQueue<QImage> *distanceQueue;
     QQueue<QImage> *depthQueue;
 
@@ -51,22 +51,16 @@ private:
     }
 
     void onNewFrame(const PDense3DFrame pFrameData);
-    float buildInDistance(cv::Vec3f chro);
-    float computedDistance(float disparity);
+    void distanceCalculation(const PDense3DFrame pFrameData);
+    void depthCalculation(const PDense3DFrame pFrameData);
+
     void createMenu();
-
-
-    QImage cvMatToQImage(const cv::Mat &inMat);
-
-
-    bool banan;
 
 public:
     explicit MainWindow(QWidget *parent = 0);
     ~MainWindow();
 
     void startProjecting();
-    QThread* getMainThread();
 
 public slots:
     void onMeasuringPointCoordsChanged(int x, int y);

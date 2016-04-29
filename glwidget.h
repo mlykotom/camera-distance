@@ -12,7 +12,7 @@
 #include <QGLShader>
 #include <QOpenGLTexture>
 
-QT_FORWARD_DECLARE_CLASS(QGLShaderProgram);
+QT_FORWARD_DECLARE_CLASS(QGLShaderProgram)
 
 
 class GLWidget : public QGLWidget, protected QOpenGLFunctions
@@ -28,7 +28,6 @@ public:
 
     void mousePressEvent(QMouseEvent *e);
     void setImage(const cv::Mat3b &image, double distance);
-    void setImage(const cv::Mat3b &image);
 
 public slots:
     void onNumberOfMeasuringPointsChanged(bool multipleMeasuringPoints_);

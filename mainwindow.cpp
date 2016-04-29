@@ -12,7 +12,8 @@ int centerY = HEIGHT / 2;
 MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent),
     ui(new Ui::MainWindow),
-    camera(NULL)
+    camera(NULL),
+    banan(false)
 {
     ui->setupUi(this);
     this->setWindowTitle("ZPO 2016");
@@ -20,10 +21,16 @@ MainWindow::MainWindow(QWidget *parent) :
 
     distancesList = new QList<QString>();
 
-    glDistanceWidget = new GLWidget(true,distancesList, this);
+    distanceQueue = new QQueue<QImage>();
+    distanceQueue->append(QImage());
+
+    depthQueue = new QQueue<QImage>();
+    depthQueue->append(QImage());
+
+    glDistanceWidget = new GLWidget(true,distancesList,distanceQueue, this);
     ui->glDistanceLayout->addWidget(glDistanceWidget,0,0);
 
-    glDepthWidget = new GLWidget(false,NULL, this);
+    glDepthWidget = new GLWidget(false,NULL,depthQueue, this);
     ui->glDepthLayout->addWidget(glDepthWidget,0,0);
 
     colorLut = Mat(cv::Size(256, 1), CV_8UC3);
@@ -48,6 +55,8 @@ MainWindow::MainWindow(QWidget *parent) :
             glDistanceWidget,SLOT(onNumberOfMeasuringPointsChanged(bool)));
     connect(ui->connectCameraButton,SIGNAL(clicked()),this,SLOT(setUpCamera()));
     connect(ui->clearPoints,SIGNAL(clicked()),glDistanceWidget,SLOT(onPointsClear()));
+    connect(this,SIGNAL(newDistanceFrame()),glDistanceWidget,SLOT(onNewFrame()));
+    connect(this,SIGNAL(newDepthFrame()),glDepthWidget,SLOT(onNewFrame()));
 }
 
 
@@ -64,21 +73,18 @@ void MainWindow::setUpCamera()
     } catch(std::invalid_argument * error){
         QMessageBox::warning(this, "Invalid argument", error->what());
     }
+
+
 }
 
 void MainWindow::onNewFrame(const PDense3DFrame pFrameData){
-
     if(!_mutex.tryLock(10)) return;
-
-  //  queue->enqueue(1);
-//    if(queue->length() > 5) return;
 
     D3DFrame frame;
     Size frameSize(pFrameData->duoFrame->width,pFrameData->duoFrame->height);
     frame.leftImg = cv::Mat(frameSize, CV_8U, pFrameData->duoFrame->leftData);
     frame.disparity = cv::Mat(frameSize, CV_32F, pFrameData->disparityData);
     frame.depth = cv::Mat(frameSize, CV_32FC3, pFrameData->depthData);
-
 
     if(ui->tabWidget->currentIndex() == 0){
         cvtColor(frame.leftImg, _leftRGB, COLOR_GRAY2BGR);
@@ -111,8 +117,8 @@ void MainWindow::onNewFrame(const PDense3DFrame pFrameData){
             if(ui->computedMeasuring->isChecked())
                 distance = computedDistance(frame.disparity.at<float>(p));
 
-            //render
-            glDistanceWidget->setImage(_leftRGB,distance);
+            distanceQueue->enqueue( cvMatToQImage( _leftRGB ) );
+            emit newDistanceFrame();
         }
         //show distance
         //ui->depth->setText(QString::number(distance));
@@ -125,11 +131,12 @@ void MainWindow::onNewFrame(const PDense3DFrame pFrameData){
         cv::cvtColor(disp8, rgbBDisparity, COLOR_GRAY2BGR);
         //color depth map
         cv::LUT(rgbBDisparity, colorLut, rgbBDisparity);
-        //render
-        glDepthWidget->setImage(rgbBDisparity,0);
+
+        depthQueue->enqueue(cvMatToQImage( rgbBDisparity ));
+        emit newDepthFrame();
+
     }
 
-   // ui->depth->setText(QString::number(queue->length()));
 
     _mutex.unlock();
 }
@@ -182,6 +189,11 @@ MainWindow::~MainWindow()
     delete ui;
 }
 
+QThread *MainWindow::getMainThread()
+{
+    return qApp->thread();
+}
+
 void MainWindow::onMeasuringPointCoordsChanged(int x, int y)
 {
     //multiple measuring points
@@ -223,6 +235,55 @@ void MainWindow::showAuthorsDialog()
                    "Tomáš Mlynarič, xmylna06");
     msgBox.exec();
 }
+
+
+QImage MainWindow::cvMatToQImage( const cv::Mat &inMat )
+{
+    switch ( inMat.type() )
+    {
+    // 8-bit, 4 channel
+    case CV_8UC4:
+    {
+        QImage image( inMat.data, inMat.cols, inMat.rows, inMat.step, QImage::Format_RGB32 );
+
+        return image;
+    }
+
+        // 8-bit, 3 channel
+    case CV_8UC3:
+    {
+        QImage image( inMat.data, inMat.cols, inMat.rows, inMat.step, QImage::Format_RGB888 );
+
+        return image.rgbSwapped();
+    }
+
+        // 8-bit, 1 channel
+    case CV_8UC1:
+    {
+        static QVector<QRgb>  sColorTable;
+
+        // only create our color table once
+        if ( sColorTable.isEmpty() )
+        {
+            for ( int i = 0; i < 256; ++i )
+                sColorTable.push_back( qRgb( i, i, i ) );
+        }
+
+        QImage image( inMat.data, inMat.cols, inMat.rows, inMat.step, QImage::Format_Indexed8 );
+
+        image.setColorTable( sColorTable );
+
+        return image;
+    }
+
+    default:
+        qWarning() << "ASM::cvMatToQImage() - cv::Mat image type not handled in switch:" << inMat.type();
+        break;
+    }
+
+    return QImage();
+}
+
 
 /**
 *   TODO:

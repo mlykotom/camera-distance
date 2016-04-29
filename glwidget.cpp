@@ -4,21 +4,23 @@
 
 #define FRAME_TIMEOUT_MS 10
 
-GLWidget::GLWidget(bool showRect_, QList<QString> *distanceStringsList_, QWidget *parent):
+GLWidget::GLWidget(bool showRect_, QList<QString> *distanceStringsList_, QQueue<QImage> *q_, QWidget *parent):
     QGLWidget(QGLFormat(QGL::DoubleBuffer),parent),
     rectHeight(20),
     rectWidht(20),
     showRect(showRect_),
     multipleMeasuringPoints(false),
-    distanceStringsList(distanceStringsList_)
+    distanceStringsList(distanceStringsList_),
+    q(q_),
+    tex(NULL),
+    texture(NULL)
 {
     _image = QImage(QSize(200,90), QImage::Format_RGB888);
     _image.fill(Qt::white);
 
-   // singleRect = QRectF(0,0,rectWidht,rectHeight);
+    // singleRect = QRectF(0,0,rectWidht,rectHeight);
     singleTextPoint = QPointF(0,0);
     singleDistanceString = "";
-
 
 }
 
@@ -62,14 +64,21 @@ void GLWidget::setImage(const cv::Mat3b &image, double distance)
     _image = QImage(image.data, image.cols, image.rows, QImage::Format_RGB888);
     singleDistanceString = QString::number(distance,'f',2);
 
-    update();
+    //update();
+    updateGL();
+
 }
 
 void GLWidget::setImage(const cv::Mat3b &image)
 {
 
+    QMutexLocker locker(&_mutex);
+
     _image = QImage(image.data, image.cols, image.rows, QImage::Format_RGB888);
-    update();
+
+
+    //update();
+    updateGL();
 
 }
 
@@ -93,19 +102,95 @@ void GLWidget::onNumberOfMeasuringPointsChanged(bool multipleMeasuringPoints_)
         distanceStringsList->clear();
     }
 
-    update();
+    //update();
 }
 
+void GLWidget::onPointsClear()
+{
+    rectList.clear();
+    textPointsList.clear();
+    distanceStringsList->clear();
+
+    singleRect = QRectF();
+    singleTextPoint = QPointF();
+}
+
+void GLWidget::onNewFrame()
+{
+    //todo
+   // _image = q->dequeue().toImage();
+
+    if(texture == NULL){
+        texture = new QOpenGLTexture(q->dequeue());
+        texture->setMinificationFilter(QOpenGLTexture::LinearMipMapLinear);
+        texture->setMagnificationFilter(QOpenGLTexture::Linear);
+
+    }
+    else{
+        texture->destroy();
+        texture->create();
+        texture->setMipLevels(0);
+        texture->setData(q->dequeue());
+    }
+
+    texture->bind();
+    updateGL();
+}
+
+void GLWidget::initializeGL()
+{
 
 
+    initializeOpenGLFunctions();
+
+#ifdef GL_TEXTURE_2D
+    glEnable(GL_TEXTURE_2D);
+#endif
+
+    int side = qMin(this->width(), this->height());
+     glViewport((this->width() - side) / 2, (this->height() - side) / 2, side, side);
+}
+
+void GLWidget::paintGL()
+{
+
+    qglClearColor(Qt::red);
+    glClear(GL_COLOR_BUFFER_BIT );
+
+    // draw a textured quad
+    glBegin(GL_QUADS);
+    glTexCoord2d(0, 0);
+    glVertex2i(-1, -1);
+
+    glTexCoord2d(0, 1);
+    glVertex2i(-1, 1);
+
+    glTexCoord2d(1, 1);
+    glVertex2i(1, 1);
+
+    glTexCoord2d(1, 0);
+    glVertex2i(1, -1);
+
+    glEnd();
+    glFlush();
+}
+
+void GLWidget::resizeGL(int width, int height)
+{
+    int side = qMin(width, height);
+    glViewport((width - side) / 2, (height - side) / 2, side, side);
+}
+
+/*
 void GLWidget::paintEvent(QPaintEvent *event)
 {
+
     if(!_mutex.tryLock(FRAME_TIMEOUT_MS)) return;
     //    timer.start();
     QPainter painter;
     painter.begin(this);
 
-    painter.drawImage(event->rect(),_image);
+   // painter.drawImage(event->rect(),_image);
 
     if(showRect){
         painter.setPen(Qt::red);
@@ -125,19 +210,9 @@ void GLWidget::paintEvent(QPaintEvent *event)
     //    qDebug() << timer.elapsed();
     painter.end();
 
-
     _mutex.unlock();
 
-
 }
 
-void GLWidget::onPointsClear()
-{
-    rectList.clear();
-    textPointsList.clear();
-    distanceStringsList->clear();
-
-    singleRect = QRectF();
-    singleTextPoint = QPointF();
-}
+*/
 

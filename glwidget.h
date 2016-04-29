@@ -1,17 +1,26 @@
 #ifndef GLWIDGET_H
 #define GLWIDGET_H
 
-#include <QGLWidget>
 #include <opencv2/opencv.hpp>
 #include <QPaintEngine>
 #include <QPaintEvent>
 #include <QTime>
-class GLWidget : public QGLWidget
+
+#include <QQueue>
+#include <QGLWidget>
+#include <QOpenGLFunctions>
+#include <QGLShader>
+#include <QOpenGLTexture>
+
+QT_FORWARD_DECLARE_CLASS(QGLShaderProgram);
+
+
+class GLWidget : public QGLWidget, protected QOpenGLFunctions
 {
     Q_OBJECT
 
 public:
-    GLWidget(bool showRect_, QList<QString> *distanceStringsList_, QWidget *parent = 0);
+    GLWidget(bool showRect_, QList<QString> *distanceStringsList_, QQueue<QImage> *q_, QWidget *parent = 0);
     QTime timer;
 
     QSize minimumSizeHint() const;
@@ -25,12 +34,17 @@ public slots:
     void onNumberOfMeasuringPointsChanged(bool multipleMeasuringPoints_);
     void onPointsClear();
 
+    void onNewFrame();
+
 signals:
     void measuringPointCoordsChanged(int x, int y);
 
 protected:
 
-    void paintEvent(QPaintEvent *event) Q_DECL_OVERRIDE;
+    //void paintEvent(QPaintEvent *event) Q_DECL_OVERRIDE;
+    void initializeGL();
+    void paintGL();
+    void resizeGL(int width, int height);
 
 private:
     QImage _image;
@@ -51,7 +65,14 @@ private:
     bool showRect;
     bool multipleMeasuringPoints;
 
+    QGLShaderProgram *program;
+    QQueue<QImage> *q;
+    QQueue<GLuint> textureQueue;
 
+
+    GLuint tex;
+    //QGLContext* mainContext;
+    QOpenGLTexture* texture;
 };
 
 #endif // GLWIDGET_H

@@ -10,26 +10,25 @@
 #include <QOpenGLTexture>
 #include "distance_point.h"
 
+#define FRAME_TIMEOUT_MS 10
+#define RECT_SIZE 10
+
 class GLWidget : public QGLWidget, protected QOpenGLFunctions
 {
     Q_OBJECT
 
 public:
-    GLWidget(bool showRect_, QList<QString> *distanceStringsList_, QQueue<QPair<QImage,float>> *q_, QWidget *parent = 0);
+    GLWidget(QList<DistancePoint*> *_distancePointList, QQueue<QImage> *q_, QWidget *parent = 0);
 
     QSize minimumSizeHint() const;
     QSize sizeHint() const;
-
     void mousePressEvent(QMouseEvent *e);
 
 public slots:
-    void onNumberOfMeasuringPointsChanged(bool multipleMeasuringPoints_);
-    void onPointsClear();
-
     void onNewFrame();
 
 signals:
-    void measuringPointCoordsChanged(int x, int y);
+    void measuringPointCoordsChanged(QPoint widgetPos, QSize widgetSize);
 
 protected:
     void initializeGL();
@@ -41,26 +40,13 @@ private:
     GLuint background;
     QMutex _mutex;
 
-    int rectWidht;
-    int rectHeight;
-
     void setupViewPort(int width, int height);
 
-    QRectF singleRect;
-    QPointF singleTextPoint;
-    QString singleDistanceString;
-
-    QList<QRectF> rectList;
-    QList<QPointF> textPointsList;
-    QList<QString> *distanceStringsList;
+    QList<DistancePoint*> *distancePointList;
+    QQueue<QImage> *imageDistanceQueue;
 
 
-    bool showRect;
-    bool multipleMeasuringPoints;
-
-    QQueue<QPair<QImage,float>> *imageDistanceQueue;
     QOpenGLTexture* texture;
-
     void static drawFramePicture();
 };
 

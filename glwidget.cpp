@@ -1,23 +1,14 @@
 #include "glwidget.h"
+#include <QDebug>
 
-#define FRAME_TIMEOUT_MS 10
-#define RECT_SIZE 10
-
-GLWidget::GLWidget(bool showRect_, QList<QString> *distanceStringsList_, QQueue<QPair<QImage, float>> *q_, QWidget *parent):
+GLWidget::GLWidget(QList<DistancePoint*> *_distancePointList, QQueue<QImage> *q_, QWidget *parent):
     QGLWidget(QGLFormat(QGL::DoubleBuffer),parent),
-    rectHeight(RECT_SIZE),
-    rectWidht(RECT_SIZE),
-    showRect(showRect_),
-    multipleMeasuringPoints(false),
-    distanceStringsList(distanceStringsList_),
+    distancePointList(_distancePointList),
     imageDistanceQueue(q_),
     texture(NULL)
 {
-    _image = QImage(QSize(200,90), QImage::Format_RGB888);
+    _image = QImage(QSize(320,240), QImage::Format_RGB888);
     _image.fill(Qt::white);
-
-    singleTextPoint = QPointF(0,0);
-    singleDistanceString = "";
 
     setAutoFillBackground(false);
 }
@@ -34,72 +25,22 @@ QSize GLWidget::sizeHint() const
 
 void GLWidget::mousePressEvent(QMouseEvent *e)
 {
-    if(!showRect) return;
-
-    int x = e->pos().x() - (RECT_SIZE / 2);
-    int y = e->pos().y() - (RECT_SIZE / 2);
-
-    if(multipleMeasuringPoints){
-        rectList.append(QRectF(x,y,rectWidht,rectHeight));
-        textPointsList.append(QPointF(x,y+35));
-    }
-    else{
-        singleRect = QRectF(x,y,rectWidht,rectHeight);
-        singleTextPoint = QPointF(x,y+35);
-    }
-
-    // TODO
-    int frameX = (x / (double)this->width()) * 320;
-    int frameY = (y / (double)this->height()) * 240;
-    emit measuringPointCoordsChanged(frameX, frameY);
+    emit measuringPointCoordsChanged(e->pos(), this->size());
 }
 
-
-
-void GLWidget::onNumberOfMeasuringPointsChanged(bool multipleMeasuringPoints_)
-{
-    multipleMeasuringPoints = multipleMeasuringPoints_;
-
-    // multiple points turned on
-    if(multipleMeasuringPoints_){
-
-        //hide single rect
-        singleRect = QRectF();
-        singleTextPoint = QPointF();
-
-    }
-    else{
-        //clear multiple points
-
-        rectList.clear();
-        textPointsList.clear();
-        distanceStringsList->clear();
-    }
-
-    //update();
-}
-
-void GLWidget::onPointsClear()
-{
-    rectList.clear();
-    textPointsList.clear();
-    distanceStringsList->clear();
-
-    singleRect = QRectF();
-    singleTextPoint = QPointF();
-}
-
+/**
+  When new frame is sent to the widget
+ * @brief GLWidget::onNewFrame
+ */
 void GLWidget::onNewFrame()
 {
     // skipping empty queue..that should never happen
     if(imageDistanceQueue->empty()) return;
 
-    QPair<QImage,float> cameraFrame = imageDistanceQueue->dequeue();
-
-    singleDistanceString = QString::number(cameraFrame.second,'f',2);
+    QImage cameraFrame = imageDistanceQueue->dequeue();
 
     if(texture == NULL){
-        texture = new QOpenGLTexture(cameraFrame.first);
+        texture = new QOpenGLTexture(cameraFrame);
         texture->setMinificationFilter(QOpenGLTexture::LinearMipMapLinear);
         texture->setMagnificationFilter(QOpenGLTexture::Linear);
     }
@@ -107,7 +48,7 @@ void GLWidget::onNewFrame()
         texture->destroy();
         texture->create();
         texture->setMipLevels(0);
-        texture->setData(cameraFrame.first);
+        texture->setData(cameraFrame);
     }
 
     texture->bind();
@@ -141,20 +82,12 @@ void GLWidget::paintEvent(QPaintEvent *event)
     glPopMatrix();
 
     QPainter painter(this);
-    if(showRect){
-        painter.setPen(Qt::red);
-        if(multipleMeasuringPoints){
-            //        for(int i = 0; i < rectList.length() ; i++){
-            //            painter.drawRect(rectList.at(i));
-            //            painter.drawText(textPointsList.at(i),distanceStringsList->at(i));
-            //        }
-        }
-        else{
-            DistancePoint p = DistancePoint(10, 10, 103.5);
-            p.render(&painter);
-
-            painter.drawRect(singleRect);
-            painter.drawText(singleTextPoint,singleDistanceString);
+    // distance list (not when depth map showing)
+    if(distancePointList != NULL){
+        // render all checked points
+        for(int i = 0; i < distancePointList->length(); i++){
+            DistancePoint *point = distancePointList->at(i);
+            point->render(&painter);
         }
     }
     painter.end();

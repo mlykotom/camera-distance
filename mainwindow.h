@@ -16,10 +16,9 @@
 #include "distance_point.h"
 
 
-#define WIDTH 320
-#define HEIGHT 240
-#define FPS 40
-
+#define CAMERA_WIDTH 320
+#define CAMERA_HEIGHT 240
+#define CAMERA_FPS 40
 #define CAMERA_BASELINE_MM 30
 
 namespace Ui {
@@ -43,14 +42,10 @@ private:
     GLWidget *glDistanceWidget;
     GLWidget *glDepthWidget;
     QMutex _mutex;
-    QLabel *distanceLabel;
 
-    cv::Point p;
-    QList<cv::Point> measuringPointsList;
-    QList<QString> *distancesList;
-
-    QQueue<QPair<QImage,float>> *distanceQueue;
-    QQueue<QPair<QImage,float>> *depthQueue;
+    QList<DistancePoint*> *renderingPoints;
+    QQueue<QImage> *distanceQueue;
+    QQueue<QImage> *depthQueue;
 
     static void CALLBACK newFrameCallback(const PDense3DFrame pFrameData, void *pUserData){
         ((MainWindow *)pUserData)->onNewFrame(pFrameData);
@@ -68,7 +63,7 @@ public:
     void startProjecting();
 
 public slots:
-    void onMeasuringPointCoordsChanged(int x, int y);
+    void onMeasuringPointCoordsChanged(QPoint pos, QSize widgetSize);
     void setUpCamera();
 
 signals:
@@ -80,7 +75,9 @@ private slots:
     void on_gainSlider_valueChanged(int value);
     void on_exposureSlider_valueChanged(int value);
     void on_swapVerticalCheckbox_clicked(bool checked);
+    void on_clearPoints_clicked();
     void showAuthorsDialog();
+    void on_connectCameraButton_clicked();
 };
 
 #endif // MAINWINDOW_H

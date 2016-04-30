@@ -13,28 +13,23 @@ MainWindow::MainWindow(QWidget *parent) :
     this->setWindowTitle("ZPO 2016");
     createMenu();
 
-    distancesList = new QList<QString>();
-    distanceQueue = new QQueue<QPair<QImage, float>>();
-    depthQueue = new QQueue<QPair<QImage, float>>();
-
-    glDistanceWidget = new GLWidget(true,distancesList,distanceQueue, this);
+    distanceQueue = new QQueue<QImage>();
+    depthQueue = new QQueue<QImage>();
+    renderingPoints = new QList<DistancePoint*>();
+    // widget for measuring distance
+    glDistanceWidget = new GLWidget(renderingPoints, distanceQueue, this);
     ui->glDistanceLayout->addWidget(glDistanceWidget,0,0);
-
-    glDepthWidget = new GLWidget(false,NULL,depthQueue, this);
+    // widget for showing depth map
+    glDepthWidget = new GLWidget(NULL, depthQueue, this);
     ui->glDepthLayout->addWidget(glDepthWidget,0,0);
-
+    // prepared lookup table for depth map
     colorLut = cv::Mat(cv::Size(256, 1), CV_8UC3);
     prepareColorLut(&colorLut);
 
-    p = cv::Point(WIDTH / 2, HEIGHT / 2);
-
     //connect signals
-    connect(glDistanceWidget,SIGNAL(measuringPointCoordsChanged(int,int)),this,SLOT(onMeasuringPointCoordsChanged(int,int)));
-    connect(this->ui->multipleMeasuringPoints,SIGNAL(toggled(bool)), glDistanceWidget,SLOT(onNumberOfMeasuringPointsChanged(bool)));
-    connect(ui->connectCameraButton,SIGNAL(clicked()),this,SLOT(setUpCamera()));
-    connect(ui->clearPoints,SIGNAL(clicked()),glDistanceWidget,SLOT(onPointsClear()));
+    connect(glDistanceWidget,SIGNAL(measuringPointCoordsChanged(QPoint, QSize)),this,SLOT(onMeasuringPointCoordsChanged(QPoint, QSize)));
     connect(this,SIGNAL(newDistanceFrame()),glDistanceWidget,SLOT(onNewFrame()));
-    connect(this,SIGNAL(newDepthFrame()),glDepthWidget,SLOT(onNewFrame()));
+    connect(this,SIGNAL(newDepthFrame()), glDepthWidget, SLOT(onNewFrame()));
 
     // connect and setup camera
    setUpCamera();
@@ -48,16 +43,25 @@ void MainWindow::setUpCamera()
 {
     try{
         if(camera == NULL)
-            camera = new StereoCamera(WIDTH, HEIGHT, FPS, LICENSE);
+            camera = new StereoCamera(CAMERA_WIDTH, CAMERA_HEIGHT, CAMERA_FPS, LICENSE);
 
         camera->open();
         camera->setParams();
         disparities = (camera->getParams().numDisparities * 16);
+
+        // Set exposure, LED brightness and camera orientation
+        camera->setLed(30);
+        camera->setGain(34);
+        camera->setExposure(45);
+        camera->setUndistort(true);
+        camera->setVerticalFlip(true);
+
         camera->start(newFrameCallback, this);
 
         this->ui->led_val->setText(QString::number(camera->getLed(),'f', 2) + " %");
         this->ui->gain_val->setText(QString::number(camera->getGain(),'f', 2) + " %");
         this->ui->exposure_val->setText(QString::number(camera->getExposure(),'f', 2) + " %");
+
     } catch(std::invalid_argument * error){
         QMessageBox::warning(this, "Invalid argument", error->what());
     }
@@ -69,16 +73,12 @@ void MainWindow::setUpCamera()
  * @param pFrameData
  */
 void MainWindow::onNewFrame(const PDense3DFrame pFrameData){
-    _mutex.lock();
-
     if(ui->tabWidget->currentIndex() == 0){
         distanceCalculation(pFrameData);
     }
     else{
         depthCalculation(pFrameData);
     }
-
-    _mutex.unlock();
 }
 
 /**
@@ -89,43 +89,30 @@ void MainWindow::onNewFrame(const PDense3DFrame pFrameData){
 void inline MainWindow::distanceCalculation(const PDense3DFrame pFrameData){
     cv::Size frameSize(pFrameData->duoFrame->width,pFrameData->duoFrame->height);
 
-    //single measuring point
-    float distance = 0;
-    // distance from depth map
-    if(ui->buildMeasuring->isChecked()){
-        cv::Mat depthMat = cv::Mat(frameSize, CV_32FC3, pFrameData->depthData);
-        distance = depthMat.at<cv::Vec3f>(p)[2] / 10.0;
-    }
-    // calculated distance
-    if(ui->computedMeasuring->isChecked()){
-        cv::Mat disparityMat = cv::Mat(frameSize, CV_32F, pFrameData->disparityData);
-        distance = ((baseline_mm * focal_length_pixels / disparityMat.at<float>(p)) / 100.0);
+    for(int i = 0; i < renderingPoints->length(); i++){
+        DistancePoint *distancePoint = renderingPoints->at(i);
+
+        float distance = 0;
+        // distance from depth map
+        if(ui->buildMeasuring->isChecked()){
+            cv::Mat depthMat = cv::Mat(frameSize, CV_32FC3, pFrameData->depthData);
+            distance = depthMat.at<cv::Vec3f>(distancePoint->y, distancePoint->x)[2] / 10.0;
+        }
+        // calculated distance
+        if(ui->computedMeasuring->isChecked()){
+            cv::Mat disparityMat = cv::Mat(frameSize, CV_32F, pFrameData->disparityData);
+            distance = ((baseline_mm * focal_length_pixels / disparityMat.at<float>(distancePoint->y, distancePoint->x)) / 100.0);
+        }
+
+        distancePoint->distance = distance;
     }
 
     cv::Mat leftCamFrame = cv::Mat(frameSize, CV_8U, pFrameData->duoFrame->leftData);
-    distanceQueue->enqueue(QPair<QImage,float>(QImage(leftCamFrame.data, leftCamFrame.cols, leftCamFrame.rows, QImage::Format_Grayscale8), distance));
+    QImage frame = QImage(leftCamFrame.data, leftCamFrame.cols, leftCamFrame.rows, QImage::Format_Grayscale8);
+
+    distanceQueue->enqueue(frame);
+    this->ui->frames_count_val->setText(QString::number(distanceQueue->length()));
     emit newDistanceFrame();
-
-    //multiple measuring points
-    if(ui->multipleMeasuringPoints->isChecked()){
-    }
-    else{
-
-    }
-//        for(int i = 0; i <  measuringPointsList.length() ; i++){
-//            // distance from depth map
-//            if(ui->buildMeasuring->isChecked())
-//                distance = buildInDistance(frame.depth.at<Vec3f>(measuringPointsList.at(i)));
-
-//            // calculated distance
-//            if(ui->computedMeasuring->isChecked())
-//                distance = computedDistance(frame.disparity.at<float>(measuringPointsList.at(i)));
-
-//            distancesList->insert(i,QString::number(distance,'f',2));
-
-//            //                glDistanceWidget->setImage(_leftRGB);
-//        }
-//    }
 }
 
 /**
@@ -144,23 +131,38 @@ void inline MainWindow::depthCalculation(const PDense3DFrame pFrameData){
     cv::LUT(rgbDisparity, colorLut, _depthRGB);
 
     QImage frame = QImage(_depthRGB.data, _depthRGB.cols, _depthRGB.rows, QImage::Format_RGB888);
-    depthQueue->enqueue(QPair<QImage,float>(frame, 0));
+    depthQueue->enqueue(frame);
     emit newDepthFrame();
 }
 
-void MainWindow::onMeasuringPointCoordsChanged(int x, int y)
+void MainWindow::onMeasuringPointCoordsChanged(QPoint pos, QSize widgetSize)
 {
-    //multiple measuring points
-    if(ui->multipleMeasuringPoints->isChecked()){
-        distancesList->append("");
-        measuringPointsList.append(cv::Point(x, y));
+    // single rendering point
+    if(ui->singleMeasuringPoint->isChecked()){
+        renderingPoints->clear();
     }
-    //single measuring point
-    else
-        p = cv::Point(x, y);
 
-    measuringPointsList.append(cv::Point(x, y));
+    int frameX = (pos.x() / (double) widgetSize.width()) * CAMERA_WIDTH;
+    int frameY = (pos.y() / (double) widgetSize.height()) * CAMERA_HEIGHT;
+
+    renderingPoints->append(new DistancePoint(pos, frameX, frameY));
 }
+
+void MainWindow::on_connectCameraButton_clicked()
+{
+    if(this->camera != NULL){
+        QMessageBox::warning(this, "Camera connected", "DUO Camera is already connected!");
+        return;
+    }
+
+    setUpCamera();
+}
+
+void MainWindow::on_clearPoints_clicked()
+{
+    renderingPoints->clear();
+}
+
 
 void MainWindow::on_ledSlider_valueChanged(int value)
 {
@@ -231,6 +233,10 @@ MainWindow::~MainWindow()
 //        delete camera;
         // TODO
     }
-    delete distancesList;
+
+
+    delete renderingPoints;
+    delete depthQueue;
+    delete distanceQueue;
     delete ui;
 }

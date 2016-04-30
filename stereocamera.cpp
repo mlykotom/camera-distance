@@ -59,13 +59,6 @@ void StereoCamera::setParams(){
     SetDUOResolutionInfo(duo, resolutionInfo);
     uint32_t w, h;
     GetDUOFrameDimension(duo, &w, &h);
-
-    // Set exposure, LED brightness and camera orientation
-    this->setLed(30);
-    this->setGain(34);
-    this->setExposure(45);
-    this->setUndistort(true);
-    this->setVerticalFlip(false);
 }
 
 StereoCamera::~StereoCamera(){

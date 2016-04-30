@@ -56,8 +56,8 @@ public:
         SetDUOExposure(duo, value);
     }
 
-    float getExposure(){
-        float value = 0.0;
+    double getExposure(){
+        double value;
         GetDUOExposure(duo, &value);
         return value;
     }
@@ -86,9 +86,9 @@ public:
         SetDUOGain(duo, value);
     }
 
-    float getGain(){
-        float value = 0.0;
-        __DUOParamGet__(duo, DUO_GAIN, &value);
+    double getGain(){
+        double value;
+        GetDUOGain(duo, &value);
         return value;
     }
 
@@ -96,7 +96,7 @@ public:
         SetDUOLedPWM(duo, value);
     }
 
-    float getLed(){
+    double getLed(){
         double value;
         GetDUOLedPWM(duo, &value);
         return value;

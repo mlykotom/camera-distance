@@ -26,12 +26,12 @@ GLWidget::GLWidget(bool showRect_, QList<QString> *distanceStringsList_, QQueue<
 
 QSize GLWidget::minimumSizeHint() const
 {
-    return QSize(50, 50);
+    return QSize(320, 240);
 }
 
 QSize GLWidget::sizeHint() const
 {
-    return QSize(300, 300);
+    return QSize(640, 480);
 }
 
 void GLWidget::mousePressEvent(QMouseEvent *e)
@@ -93,10 +93,8 @@ void GLWidget::onPointsClear()
 
 void GLWidget::onNewFrame()
 {
-    if(imageDistanceQueue->empty()) {
-        // skipping empty queue, that should not happen
-        return;
-    }
+    // skipping empty queue..that should never happen
+    if(imageDistanceQueue->empty()) return;
 
     QPair<QImage,float> cameraFrame = imageDistanceQueue->dequeue();
 

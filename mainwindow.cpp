@@ -2,12 +2,6 @@
 #include "ui_mainwindow.h"
 #include "utils.h"
 
-#define WIDTH 320
-#define HEIGHT 240
-#define FPS 40
-
-#define CAMERA_BASELINE_MM 30
-
 MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent),
     ui(new Ui::MainWindow),
@@ -60,6 +54,10 @@ void MainWindow::setUpCamera()
         camera->setParams();
         disparities = (camera->getParams().numDisparities * 16);
         camera->start(newFrameCallback, this);
+
+        this->ui->led_val->setText(QString::number(camera->getLed(),'f', 2) + " %");
+        this->ui->gain_val->setText(QString::number(camera->getGain(),'f', 2) + " %");
+        this->ui->exposure_val->setText(QString::number(camera->getExposure(),'f', 2) + " %");
     } catch(std::invalid_argument * error){
         QMessageBox::warning(this, "Invalid argument", error->what());
     }
@@ -160,21 +158,26 @@ void MainWindow::onMeasuringPointCoordsChanged(int x, int y)
     //single measuring point
     else
         p = cv::Point(x, y);
+
+    measuringPointsList.append(cv::Point(x, y));
 }
 
 void MainWindow::on_ledSlider_valueChanged(int value)
 {
-    camera->setLed(value*0.1);
+    camera->setLed(value * 0.1);
+    this->ui->led_val->setText(QString::number(camera->getLed(),'f', 2) + " %");
 }
 
 void MainWindow::on_gainSlider_valueChanged(int value)
 {
-    camera->setGain(value*0.1);
+    camera->setGain(value * 0.1);
+    this->ui->gain_val->setText(QString::number(camera->getGain(),'f', 2) + " %");
 }
 
 void MainWindow::on_exposureSlider_valueChanged(int value)
 {
-    camera->setExposure(value*0.1);
+    camera->setExposure(value * 0.1);
+    this->ui->exposure_val->setText(QString::number(camera->getExposure(),'f', 2) + " %");
 }
 
 void MainWindow::on_swapVerticalCheckbox_clicked(bool checked)

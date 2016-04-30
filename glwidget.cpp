@@ -3,23 +3,24 @@
 #include <QQueue>
 
 #define FRAME_TIMEOUT_MS 10
+#define RECT_SIZE 10
 
 GLWidget::GLWidget(bool showRect_, QList<QString> *distanceStringsList_, QQueue<QPair<QImage, float>> *q_, QWidget *parent):
     QGLWidget(QGLFormat(QGL::DoubleBuffer),parent),
-    rectHeight(20),
-    rectWidht(20),
+    rectHeight(RECT_SIZE),
+    rectWidht(RECT_SIZE),
     showRect(showRect_),
     multipleMeasuringPoints(false),
     distanceStringsList(distanceStringsList_),
-    q(q_),
+    imageDistanceQueue(q_),
     texture(NULL)
 {
     _image = QImage(QSize(200,90), QImage::Format_RGB888);
     _image.fill(Qt::white);
 
-    // singleRect = QRectF(0,0,rectWidht,rectHeight);
     singleTextPoint = QPointF(0,0);
     singleDistanceString = "";
+
     setAutoFillBackground(false);
 }
 
@@ -30,20 +31,19 @@ QSize GLWidget::minimumSizeHint() const
 
 QSize GLWidget::sizeHint() const
 {
-    return QSize(300, 200);
+    return QSize(300, 300);
 }
 
 void GLWidget::mousePressEvent(QMouseEvent *e)
 {
     if(!showRect) return;
 
-    int x = e->pos().x()-10;
-    int y = e->pos().y()-10;
+    int x = e->pos().x() - (RECT_SIZE / 2);
+    int y = e->pos().y() - (RECT_SIZE / 2);
 
     if(multipleMeasuringPoints){
         rectList.append(QRectF(x,y,rectWidht,rectHeight));
         textPointsList.append(QPointF(x,y+35));
-        //distanceStringsList.append("");
     }
     else{
         singleRect = QRectF(x,y,rectWidht,rectHeight);
@@ -93,15 +93,14 @@ void GLWidget::onPointsClear()
 
 void GLWidget::onNewFrame()
 {
-    if(q->empty()) {
+    if(imageDistanceQueue->empty()) {
         // skipping empty queue, that should not happen
         return;
     }
 
-    QPair<QImage,float> cameraFrame = q->dequeue();
+    QPair<QImage,float> cameraFrame = imageDistanceQueue->dequeue();
 
     singleDistanceString = QString::number(cameraFrame.second,'f',2);
-
 
     if(texture == NULL){
         texture = new QOpenGLTexture(cameraFrame.first);
@@ -119,6 +118,10 @@ void GLWidget::onNewFrame()
     update();
 }
 
+/**
+ * Initializing openGL options
+ * @brief GLWidget::initializeGL
+ */
 void GLWidget::initializeGL()
 {
     initializeOpenGLFunctions();
@@ -126,9 +129,11 @@ void GLWidget::initializeGL()
     setupViewPort(width(), height());
 }
 
-
-
-//void GLWidget::paintGL()
+/**
+ * HW accelerated rendering (GL + QT drawing)
+ * @brief GLWidget::paintEvent
+ * @param event
+ */
 void GLWidget::paintEvent(QPaintEvent *event)
 {
     glPushMatrix();
@@ -142,8 +147,16 @@ void GLWidget::paintEvent(QPaintEvent *event)
     QPainter painter(this);
     if(showRect){
         painter.setPen(Qt::red);
-        painter.drawRect(singleRect);
-        painter.drawText(singleTextPoint,singleDistanceString);
+        if(multipleMeasuringPoints){
+            //        for(int i = 0; i < rectList.length() ; i++){
+            //            painter.drawRect(rectList.at(i));
+            //            painter.drawText(textPointsList.at(i),distanceStringsList->at(i));
+            //        }
+        }
+        else{
+            painter.drawRect(singleRect);
+            painter.drawText(singleTextPoint,singleDistanceString);
+        }
     }
     painter.end();
 }
@@ -167,6 +180,12 @@ void GLWidget::drawFramePicture(){
     glEnd();
 }
 
+/**
+ * When GL recognizes resize
+ * @brief GLWidget::resizeGL
+ * @param width
+ * @param height
+ */
 void GLWidget::resizeGL(int width, int height)
 {
     setupViewPort(width, height);
@@ -183,29 +202,5 @@ void GLWidget::setupViewPort(int width, int height)
     int side = qMin(width, height);
     glViewport((width - side) / 2, (height - side) / 2, side, side);
 }
-
-
-//void GLWidget::paintEvent(QPaintEvent *event)
-//{
-//    if(!showRect) return;
-//    QPainter painter;
-//    painter.begin(this);
-
-//    painter.setPen(Qt::red);
-
-//    if(multipleMeasuringPoints){
-//        for(int i = 0; i < rectList.length() ; i++){
-//            painter.drawRect(rectList.at(i));
-//            painter.drawText(textPointsList.at(i),distanceStringsList->at(i));
-//        }
-//    }
-//    else{
-//        painter.drawRect(singleRect);
-//        painter.drawText(singleTextPoint,singleDistanceString);
-//    }
-
-//    painter.end();
-//}
-
 
 

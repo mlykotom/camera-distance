@@ -1,6 +1,5 @@
 #include "stereocamera.h"
 
-
 StereoCamera::StereoCamera(unsigned initWidth, unsigned initHeight, unsigned initFps, const std::string initLicense):
     width(initWidth), height(initHeight), fps(initFps), license(initLicense), duo(NULL), dense(NULL)
 {
@@ -60,7 +59,6 @@ void StereoCamera::setParams(){
     SetDUOResolutionInfo(duo, resolutionInfo);
     uint32_t w, h;
     GetDUOFrameDimension(duo, &w, &h);
-    qDebug() << "Frame Dimension: [" << w << "," << h << "]";
 
     // Set exposure, LED brightness and camera orientation
     this->setLed(30);

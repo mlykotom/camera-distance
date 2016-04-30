@@ -14,8 +14,6 @@
 #include "stereocamera.h"
 #include "glwidget.h"
 
-using namespace cv;
-
 namespace Ui {
 class MainWindow;
 }
@@ -28,7 +26,7 @@ private:
     Ui::MainWindow *ui;
     StereoCamera *camera;
     cv::Mat _leftRGB, _depthRGB;
-    Mat colorLut;
+    cv::Mat colorLut;
 
     float focal_length_pixels;
     float baseline_mm;
@@ -39,8 +37,8 @@ private:
     QMutex _mutex;
     QLabel *distanceLabel;
 
-    Point p;
-    QList<Point> measuringPointsList;
+    cv::Point p;
+    QList<cv::Point> measuringPointsList;
     QList<QString> *distancesList;
 
     QQueue<QPair<QImage,float>> *distanceQueue;
@@ -55,7 +53,6 @@ private:
     void depthCalculation(const PDense3DFrame pFrameData);
 
     void createMenu();
-
 public:
     explicit MainWindow(QWidget *parent = 0);
     ~MainWindow();

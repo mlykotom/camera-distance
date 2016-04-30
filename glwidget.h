@@ -60,11 +60,12 @@ private:
     QList<QPointF> textPointsList;
     QList<QString> *distanceStringsList;
 
+
     bool showRect;
     bool multipleMeasuringPoints;
 
     QGLShaderProgram *program;
-    QQueue<QPair<QImage,float>> *q;
+    QQueue<QPair<QImage,float>> *imageDistanceQueue;
     QOpenGLTexture* texture;
 
     void static drawFramePicture();

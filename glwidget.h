@@ -18,7 +18,7 @@ class GLWidget : public QGLWidget, protected QOpenGLFunctions
     Q_OBJECT
 
 public:
-    GLWidget(QList<DistancePoint*> *_distancePointList, QQueue<QImage> *q_, QWidget *parent = 0);
+    GLWidget(QList<QSharedPointer<DistancePoint>> *_distancePointList, QQueue<QImage> *q_, QWidget *parent = 0);
 
     QSize minimumSizeHint() const;
     QSize sizeHint() const;
@@ -42,7 +42,7 @@ private:
 
     void setupViewPort(int width, int height);
 
-    QList<DistancePoint*> *distancePointList;
+    QList<QSharedPointer<DistancePoint>> *distancePointList;
     QQueue<QImage> *imageDistanceQueue;
 
 

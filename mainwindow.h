@@ -5,8 +5,8 @@
 #include <QDesktopWidget>
 #include <QtWidgets>
 #include <QQueue>
+#include <QSharedPointer>
 
-#include <queue>
 #include <stdexcept>
 #include <opencv2/opencv.hpp>
 #include "DUOLib.h"
@@ -43,7 +43,7 @@ private:
     GLWidget *glDepthWidget;
     QMutex _mutex;
 
-    QList<DistancePoint*> *renderingPoints;
+    QList<QSharedPointer<DistancePoint>> *renderingPoints;
     QQueue<QImage> *distanceQueue;
     QQueue<QImage> *depthQueue;
 

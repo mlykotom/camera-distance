@@ -1,7 +1,7 @@
 #include "glwidget.h"
 #include <QDebug>
 
-GLWidget::GLWidget(QList<DistancePoint*> *_distancePointList, QQueue<QImage> *q_, QWidget *parent):
+GLWidget::GLWidget(QList<QSharedPointer<DistancePoint>> *_distancePointList, QQueue<QImage> *q_, QWidget *parent):
     QGLWidget(QGLFormat(QGL::DoubleBuffer),parent),
     distancePointList(_distancePointList),
     imageDistanceQueue(q_),
@@ -86,7 +86,7 @@ void GLWidget::paintEvent(QPaintEvent *event)
     if(distancePointList != NULL){
         // render all checked points
         for(int i = 0; i < distancePointList->length(); i++){
-            DistancePoint *point = distancePointList->at(i);
+            QSharedPointer<DistancePoint> point = distancePointList->at(i);
             point->render(&painter);
         }
     }

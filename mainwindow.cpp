@@ -15,7 +15,7 @@ MainWindow::MainWindow(QWidget *parent) :
 
     distanceQueue = new QQueue<QImage>();
     depthQueue = new QQueue<QImage>();
-    renderingPoints = new QList<DistancePoint*>();
+    renderingPoints = new QList<QSharedPointer<DistancePoint>>();
     // widget for measuring distance
     glDistanceWidget = new GLWidget(renderingPoints, distanceQueue, this);
     ui->glDistanceLayout->addWidget(glDistanceWidget,0,0);
@@ -64,6 +64,8 @@ void MainWindow::setUpCamera()
 
     } catch(std::invalid_argument * error){
         QMessageBox::warning(this, "Invalid argument", error->what());
+        delete camera;
+        camera = NULL;
     }
 }
 
@@ -90,7 +92,7 @@ void inline MainWindow::distanceCalculation(const PDense3DFrame pFrameData){
     cv::Size frameSize(pFrameData->duoFrame->width,pFrameData->duoFrame->height);
 
     for(int i = 0; i < renderingPoints->length(); i++){
-        DistancePoint *distancePoint = renderingPoints->at(i);
+        QSharedPointer<DistancePoint> distancePoint = renderingPoints->at(i);
 
         float distance = 0;
         // distance from depth map
@@ -145,7 +147,7 @@ void MainWindow::onMeasuringPointCoordsChanged(QPoint pos, QSize widgetSize)
     int frameX = (pos.x() / (double) widgetSize.width()) * CAMERA_WIDTH;
     int frameY = (pos.y() / (double) widgetSize.height()) * CAMERA_HEIGHT;
 
-    renderingPoints->append(new DistancePoint(pos, frameX, frameY));
+    renderingPoints->append(QSharedPointer<DistancePoint>(new DistancePoint(pos, frameX, frameY)));
 }
 
 void MainWindow::on_connectCameraButton_clicked()

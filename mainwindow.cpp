@@ -20,9 +20,8 @@ MainWindow::MainWindow(QWidget *parent) :
 
     distancesList = new QList<QString>();
 
-    distanceQueue = new QQueue<QImage>();
-    distQueue = new QQueue<QPair<QImage, float>>();
-    depthQueue = new QQueue<QImage>();
+    distanceQueue = new QQueue<QPair<QImage, float>>();
+    depthQueue = new QQueue<QPair<QImage, float>>();
 
     glDistanceWidget = new GLWidget(true,distancesList,distanceQueue, this);
     ui->glDistanceLayout->addWidget(glDistanceWidget,0,0);
@@ -94,10 +93,10 @@ void inline MainWindow::distanceCalculation(const PDense3DFrame pFrameData){
     }
 
     cv::Mat leftCamFrame = cv::Mat(frameSize, CV_8U, pFrameData->duoFrame->leftData);
-    distanceQueue->enqueue(QImage(leftCamFrame.data, leftCamFrame.cols, leftCamFrame.rows, QImage::Format_Grayscale8));
+    distanceQueue->enqueue(QPair<QImage,float>(QImage(leftCamFrame.data, leftCamFrame.cols, leftCamFrame.rows, QImage::Format_Grayscale8), distance));
     emit newDistanceFrame();
     //show distance
-    ui->depth->setText(QString::number(distance));
+//    ui->depth->setText(QString::number(distance));
 
     //multiple measuring points
 //    if(ui->multipleMeasuringPoints->isChecked()){
@@ -132,7 +131,7 @@ void inline MainWindow::depthCalculation(const PDense3DFrame pFrameData){
     //color depth map
     cv::LUT(rgbDisparity, colorLut, _depthRGB);
 
-    depthQueue->enqueue(QImage(_depthRGB.data, _depthRGB.cols, _depthRGB.rows, QImage::Format_RGB888));
+    depthQueue->enqueue(QPair<QImage,float>(QImage(_depthRGB.data, _depthRGB.cols, _depthRGB.rows, QImage::Format_RGB888),0));
     emit newDepthFrame();
 }
 

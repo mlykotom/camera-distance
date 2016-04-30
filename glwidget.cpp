@@ -4,7 +4,7 @@
 
 #define FRAME_TIMEOUT_MS 10
 
-GLWidget::GLWidget(bool showRect_, QList<QString> *distanceStringsList_, QQueue<QImage> *q_, QWidget *parent):
+GLWidget::GLWidget(bool showRect_, QList<QString> *distanceStringsList_, QQueue<QPair<QImage, float>> *q_, QWidget *parent):
     QGLWidget(QGLFormat(QGL::DoubleBuffer),parent),
     rectHeight(20),
     rectWidht(20),
@@ -20,6 +20,7 @@ GLWidget::GLWidget(bool showRect_, QList<QString> *distanceStringsList_, QQueue<
     // singleRect = QRectF(0,0,rectWidht,rectHeight);
     singleTextPoint = QPointF(0,0);
     singleDistanceString = "";
+    setAutoFillBackground(false);
 }
 
 QSize GLWidget::minimumSizeHint() const
@@ -55,15 +56,7 @@ void GLWidget::mousePressEvent(QMouseEvent *e)
     emit measuringPointCoordsChanged(frameX, frameY);
 }
 
-void GLWidget::setImage(const cv::Mat3b &image, double distance)
-{
-    _image = QImage(image.data, image.cols, image.rows, QImage::Format_RGB888);
-    singleDistanceString = QString::number(distance,'f',2);
 
-    //update();
-    updateGL();
-
-}
 
 void GLWidget::onNumberOfMeasuringPointsChanged(bool multipleMeasuringPoints_)
 {
@@ -105,8 +98,13 @@ void GLWidget::onNewFrame()
         return;
     }
 
+    QPair<QImage,float> cameraFrame = q->dequeue();
+
+    singleDistanceString = QString::number(cameraFrame.second,'f',2);
+
+
     if(texture == NULL){
-        texture = new QOpenGLTexture(q->dequeue());
+        texture = new QOpenGLTexture(cameraFrame.first);
         texture->setMinificationFilter(QOpenGLTexture::LinearMipMapLinear);
         texture->setMagnificationFilter(QOpenGLTexture::Linear);
     }
@@ -114,89 +112,100 @@ void GLWidget::onNewFrame()
         texture->destroy();
         texture->create();
         texture->setMipLevels(0);
-        texture->setData(q->dequeue());
+        texture->setData(cameraFrame.first);
     }
 
     texture->bind();
-    updateGL();
+    update();
 }
 
 void GLWidget::initializeGL()
 {
-
-
     initializeOpenGLFunctions();
-
-#ifdef GL_TEXTURE_2D
-    glEnable(GL_TEXTURE_2D);
-#endif
-
-    int side = qMin(this->width(), this->height());
-    glViewport((this->width() - side) / 2, (this->height() - side) / 2, side, side);
+    qglClearColor(Qt::black);
+    setupViewPort(width(), height());
 }
 
-void GLWidget::paintGL()
+
+
+//void GLWidget::paintGL()
+void GLWidget::paintEvent(QPaintEvent *event)
 {
-
-    qglClearColor(Qt::red);
-    glClear(GL_COLOR_BUFFER_BIT );
-
+    glPushMatrix();
+    glEnable(GL_TEXTURE_2D);
+    glClear(GL_COLOR_BUFFER_BIT);
     // draw a textured quad
+    drawFramePicture();
+    glDisable(GL_TEXTURE_2D);
+    glPopMatrix();
+
+    QPainter painter(this);
+    if(showRect){
+        painter.setPen(Qt::red);
+        painter.drawRect(singleRect);
+        painter.drawText(singleTextPoint,singleDistanceString);
+    }
+    painter.end();
+}
+
+/**
+ * Draws rectangle with picture texture on it
+ * @brief GLWidget::makeFrameObject
+ */
+void GLWidget::drawFramePicture(){
     glBegin(GL_QUADS);
+    // -- start specifying vertices
     glTexCoord2d(0, 0);
     glVertex2i(-1, -1);
-
     glTexCoord2d(0, 1);
     glVertex2i(-1, 1);
-
     glTexCoord2d(1, 1);
     glVertex2i(1, 1);
-
     glTexCoord2d(1, 0);
     glVertex2i(1, -1);
-
+    // -- end specifying vertices
     glEnd();
-    glFlush();
 }
 
 void GLWidget::resizeGL(int width, int height)
+{
+    setupViewPort(width, height);
+}
+
+/**
+ * Setups openGL viewport
+ * @brief GLWidget::setupViewPort
+ * @param width
+ * @param height
+ */
+void GLWidget::setupViewPort(int width, int height)
 {
     int side = qMin(width, height);
     glViewport((width - side) / 2, (height - side) / 2, side, side);
 }
 
-/*
-void GLWidget::paintEvent(QPaintEvent *event)
-{
 
-    if(!_mutex.tryLock(FRAME_TIMEOUT_MS)) return;
-    //    timer.start();
-    QPainter painter;
-    painter.begin(this);
+//void GLWidget::paintEvent(QPaintEvent *event)
+//{
+//    if(!showRect) return;
+//    QPainter painter;
+//    painter.begin(this);
 
-   // painter.drawImage(event->rect(),_image);
+//    painter.setPen(Qt::red);
 
-    if(showRect){
-        painter.setPen(Qt::red);
+//    if(multipleMeasuringPoints){
+//        for(int i = 0; i < rectList.length() ; i++){
+//            painter.drawRect(rectList.at(i));
+//            painter.drawText(textPointsList.at(i),distanceStringsList->at(i));
+//        }
+//    }
+//    else{
+//        painter.drawRect(singleRect);
+//        painter.drawText(singleTextPoint,singleDistanceString);
+//    }
 
-        if(multipleMeasuringPoints){
-            for(int i = 0; i < rectList.length() ; i++){
-                painter.drawRect(rectList.at(i));
-                painter.drawText(textPointsList.at(i),distanceStringsList->at(i));
-            }
-        }
-        else{
-            painter.drawRect(singleRect);
-            painter.drawText(singleTextPoint,singleDistanceString);
-        }
-    }
+//    painter.end();
+//}
 
-    //    qDebug() << timer.elapsed();
-    painter.end();
 
-    _mutex.unlock();
-
-}
-
-*/
 

@@ -43,9 +43,8 @@ private:
     QList<Point> measuringPointsList;
     QList<QString> *distancesList;
 
-    QQueue<QImage> *distanceQueue;
-    QQueue<QImage> *depthQueue;
-    QQueue<QPair<QImage, float>> *distQueue;
+    QQueue<QPair<QImage,float>> *distanceQueue;
+    QQueue<QPair<QImage,float>> *depthQueue;
 
     static void CALLBACK newFrameCallback(const PDense3DFrame pFrameData, void *pUserData){
         ((MainWindow *)pUserData)->onNewFrame(pFrameData);

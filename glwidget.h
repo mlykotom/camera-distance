@@ -20,14 +20,12 @@ class GLWidget : public QGLWidget, protected QOpenGLFunctions
     Q_OBJECT
 
 public:
-    GLWidget(bool showRect_, QList<QString> *distanceStringsList_, QQueue<QImage> *q_, QWidget *parent = 0);
-    QTime timer;
+    GLWidget(bool showRect_, QList<QString> *distanceStringsList_, QQueue<QPair<QImage,float>> *q_, QWidget *parent = 0);
 
     QSize minimumSizeHint() const;
     QSize sizeHint() const;
 
     void mousePressEvent(QMouseEvent *e);
-    void setImage(const cv::Mat3b &image, double distance);
 
 public slots:
     void onNumberOfMeasuringPointsChanged(bool multipleMeasuringPoints_);
@@ -39,10 +37,9 @@ signals:
     void measuringPointCoordsChanged(int x, int y);
 
 protected:
-
-    //void paintEvent(QPaintEvent *event) Q_DECL_OVERRIDE;
     void initializeGL();
-    void paintGL();
+    void paintEvent(QPaintEvent *event);
+//    void paintGL();
     void resizeGL(int width, int height);
 
 private:
@@ -52,6 +49,8 @@ private:
 
     int rectWidht;
     int rectHeight;
+
+    void setupViewPort(int width, int height);
 
     QRectF singleRect;
     QPointF singleTextPoint;
@@ -65,13 +64,10 @@ private:
     bool multipleMeasuringPoints;
 
     QGLShaderProgram *program;
-    QQueue<QImage> *q;
-    QQueue<GLuint> textureQueue;
-
-
-    GLuint tex;
-    //QGLContext* mainContext;
+    QQueue<QPair<QImage,float>> *q;
     QOpenGLTexture* texture;
+
+    void static drawFramePicture();
 };
 
 #endif // GLWIDGET_H

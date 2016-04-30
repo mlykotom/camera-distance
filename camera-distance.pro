@@ -52,7 +52,8 @@ SOURCES += main.cpp\
 HEADERS  += api_keys.h mainwindow.h stereocamera.h \
 	utils.h \
 	api_keys.h \
-    glwidget.h
+    glwidget.h \
+    distance_point.h
 
 FORMS    += mainwindow.ui
 

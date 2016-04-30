@@ -1,6 +1,4 @@
 #include "glwidget.h"
-#include "QDebug"
-#include <QQueue>
 
 #define FRAME_TIMEOUT_MS 10
 #define RECT_SIZE 10
@@ -152,6 +150,9 @@ void GLWidget::paintEvent(QPaintEvent *event)
             //        }
         }
         else{
+            DistancePoint p = DistancePoint(10, 10, 103.5);
+            p.render(&painter);
+
             painter.drawRect(singleRect);
             painter.drawText(singleTextPoint,singleDistanceString);
         }

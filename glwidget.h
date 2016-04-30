@@ -8,6 +8,7 @@
 #include <QGLWidget>
 #include <QOpenGLFunctions>
 #include <QOpenGLTexture>
+#include "distance_point.h"
 
 class GLWidget : public QGLWidget, protected QOpenGLFunctions
 {

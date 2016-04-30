@@ -13,6 +13,7 @@
 #include "api_keys.h"
 #include "stereocamera.h"
 #include "glwidget.h"
+#include "distance_point.h"
 
 
 #define WIDTH 320
@@ -20,17 +21,6 @@
 #define FPS 40
 
 #define CAMERA_BASELINE_MM 30
-
-struct DistancePoint{
-    static const int rectSize = 10;
-
-    QRect rectangle;
-    float distance;
-
-    DistancePoint(int x, int y, float _distance): distance(_distance){
-        rectangle = QRect(x - rectSize / 2, y - rectSize / 2, rectSize, rectSize);
-    }
-};
 
 namespace Ui {
 class MainWindow;

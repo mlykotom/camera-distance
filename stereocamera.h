@@ -6,12 +6,7 @@
 #include <opencv2/opencv.hpp>
 #include <stdexcept>
 #include <QDebug>
-
-struct D3DFrame {
-    cv::Mat leftImg, rightImg;
-    cv::Mat disparity;
-    cv::Mat depth;
-};
+#include "distance_point.h"
 
 class StereoCamera
 {

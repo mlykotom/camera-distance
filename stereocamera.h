@@ -6,12 +6,7 @@
 #include <opencv2/opencv.hpp>
 #include <stdexcept>
 #include <QDebug>
-
-struct D3DFrame {
-    cv::Mat leftImg, rightImg;
-    cv::Mat disparity;
-    cv::Mat depth;
-};
+#include "distance_point.h"
 
 class StereoCamera
 {
@@ -56,8 +51,8 @@ public:
         SetDUOExposure(duo, value);
     }
 
-    float getExposure(){
-        float value = 0.0;
+    double getExposure(){
+        double value;
         GetDUOExposure(duo, &value);
         return value;
     }
@@ -86,9 +81,9 @@ public:
         SetDUOGain(duo, value);
     }
 
-    float getGain(){
-        float value = 0.0;
-        __DUOParamGet__(duo, DUO_GAIN, &value);
+    double getGain(){
+        double value;
+        GetDUOGain(duo, &value);
         return value;
     }
 
@@ -96,9 +91,11 @@ public:
         SetDUOLedPWM(duo, value);
     }
 
-    float getLed(){
+    double getLed(){
         double value;
-        GetDUOLedPWM(duo, &value);
+        if(!GetDUOLedPWM(duo, &value)){
+            qDebug() << "Led false";
+        }
         return value;
     }
 

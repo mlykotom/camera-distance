@@ -5,16 +5,22 @@
 #include <QDesktopWidget>
 #include <QtWidgets>
 #include <QQueue>
+#include <QSharedPointer>
 
-#include <queue>
 #include <stdexcept>
 #include <opencv2/opencv.hpp>
 #include "DUOLib.h"
 #include "api_keys.h"
 #include "stereocamera.h"
 #include "glwidget.h"
+#include "distance_point.h"
+#include "thread_safe_queue.h"
 
-using namespace cv;
+#define CAMERA_WIDTH 320
+#define CAMERA_HEIGHT 240
+#define CAMERA_FPS 40
+#define CAMERA_BASELINE_MM 30
+#define CAMERA_FOCAL_LENGTH_MM 2
 
 namespace Ui {
 class MainWindow;
@@ -28,48 +34,37 @@ private:
     Ui::MainWindow *ui;
     StereoCamera *camera;
     cv::Mat _leftRGB, _depthRGB;
-    Mat colorLut;
+    cv::Mat colorLut;
 
     float focal_length_pixels;
     float baseline_mm;
+    int disparities;
 
     GLWidget *glDistanceWidget;
     GLWidget *glDepthWidget;
     QMutex _mutex;
-    QLabel *distanceLabel;
 
-    Point p;
-    QList<Point> measuringPointsList;
-    QList<QString> *distancesList;
-
-    QTime timer;
-    QQueue<QImage> *distanceQueue;
-    QQueue<QImage> *depthQueue;
+    QList<QSharedPointer<DistancePoint>> *renderingPoints;
+    ThreadSafeQueue<QImage> *distanceQueue;
+    ThreadSafeQueue<QImage> *depthQueue;
 
     static void CALLBACK newFrameCallback(const PDense3DFrame pFrameData, void *pUserData){
         ((MainWindow *)pUserData)->onNewFrame(pFrameData);
     }
 
     void onNewFrame(const PDense3DFrame pFrameData);
-    float buildInDistance(cv::Vec3f chro);
-    float computedDistance(float disparity);
+    void distanceCalculation(const PDense3DFrame pFrameData);
+    void depthCalculation(const PDense3DFrame pFrameData);
+
     void createMenu();
-
-
-    QImage cvMatToQImage(const cv::Mat &inMat);
-
-
-    bool banan;
-
 public:
     explicit MainWindow(QWidget *parent = 0);
     ~MainWindow();
 
     void startProjecting();
-    QThread* getMainThread();
 
 public slots:
-    void onMeasuringPointCoordsChanged(int x, int y);
+    void onMeasuringPointCoordsChanged(QPoint pos, QSize widgetSize);
     void setUpCamera();
 
 signals:
@@ -81,7 +76,9 @@ private slots:
     void on_gainSlider_valueChanged(int value);
     void on_exposureSlider_valueChanged(int value);
     void on_swapVerticalCheckbox_clicked(bool checked);
+    void on_clearPoints_clicked();
     void showAuthorsDialog();
+    void on_connectCameraButton_clicked();
 };
 
 #endif // MAINWINDOW_H

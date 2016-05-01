@@ -2,146 +2,215 @@
 #include "ui_mainwindow.h"
 #include "utils.h"
 
-#define WIDTH 320
-#define HEIGHT 240
-#define FPS 40
-
-int centerX = WIDTH / 2;
-int centerY = HEIGHT / 2;
-
 MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent),
     ui(new Ui::MainWindow),
-    camera(NULL),
-    banan(false)
+    // camera properties for calculated distance
+    focal_length_pixels(CAMERA_FOCAL_LENGTH_MM * 36),
+    baseline_mm(CAMERA_BASELINE_MM)
 {
     ui->setupUi(this);
     this->setWindowTitle("ZPO 2016");
     createMenu();
 
-    distancesList = new QList<QString>();
-
-    distanceQueue = new QQueue<QImage>();
-    distanceQueue->append(QImage());
-
-    depthQueue = new QQueue<QImage>();
-    depthQueue->append(QImage());
-
-    glDistanceWidget = new GLWidget(true,distancesList,distanceQueue, this);
+    distanceQueue = new ThreadSafeQueue<QImage>();
+    depthQueue = new ThreadSafeQueue<QImage>();
+    renderingPoints = new QList<QSharedPointer<DistancePoint>>();
+    // widget for measuring distance
+    glDistanceWidget = new GLWidget(renderingPoints, distanceQueue, this);
     ui->glDistanceLayout->addWidget(glDistanceWidget,0,0);
-
-    glDepthWidget = new GLWidget(false,NULL,depthQueue, this);
+    // widget for showing depth map
+    glDepthWidget = new GLWidget(NULL, depthQueue, this);
     ui->glDepthLayout->addWidget(glDepthWidget,0,0);
-
-    colorLut = Mat(cv::Size(256, 1), CV_8UC3);
+    // prepared lookup table for depth map
+    colorLut = cv::Mat(cv::Size(256, 1), CV_8UC3);
     prepareColorLut(&colorLut);
 
-    try{
-        camera = new StereoCamera(WIDTH, HEIGHT, FPS, LICENSE);
-        setUpCamera();
-    } catch(std::invalid_argument * error){
-        QMessageBox::warning(this, "Invalid argument", error->what());
-    }
-
-    p = cv::Point(centerX, centerY);
-
-    // camera properties for calculated distance
-    focal_length_pixels = 2 * 360;
-    baseline_mm = 30;
-
-    //connect signlas
-    connect(glDistanceWidget,SIGNAL(measuringPointCoordsChanged(int,int)),this,SLOT(onMeasuringPointCoordsChanged(int,int)));
-    connect(this->ui->multipleMeasuringPoints,SIGNAL(toggled(bool)),
-            glDistanceWidget,SLOT(onNumberOfMeasuringPointsChanged(bool)));
-    connect(ui->connectCameraButton,SIGNAL(clicked()),this,SLOT(setUpCamera()));
-    connect(ui->clearPoints,SIGNAL(clicked()),glDistanceWidget,SLOT(onPointsClear()));
+    //connect signals
+    connect(glDistanceWidget,SIGNAL(measuringPointCoordsChanged(QPoint, QSize)),this,SLOT(onMeasuringPointCoordsChanged(QPoint, QSize)));
     connect(this,SIGNAL(newDistanceFrame()),glDistanceWidget,SLOT(onNewFrame()));
-    connect(this,SIGNAL(newDepthFrame()),glDepthWidget,SLOT(onNewFrame()));
+    connect(this,SIGNAL(newDepthFrame()), glDepthWidget, SLOT(onNewFrame()));
+
+    // connect and setup camera
+   setUpCamera();
 }
 
-
-
+/**
+ * Prepares cameras options
+ * @brief MainWindow::setUpCamera
+ */
 void MainWindow::setUpCamera()
 {
     try{
         if(camera == NULL)
-            camera = new StereoCamera(WIDTH, HEIGHT, FPS, LICENSE);
+            camera = new StereoCamera(CAMERA_WIDTH, CAMERA_HEIGHT, CAMERA_FPS, LICENSE);
 
         camera->open();
         camera->setParams();
+        disparities = (camera->getParams().numDisparities * 16);
+
+        // Set exposure, LED brightness and camera orientation
+        camera->setLed(30);
+        camera->setGain(34);
+        camera->setExposure(45);
+        camera->setUndistort(true);
+        camera->setVerticalFlip(true);
+
         camera->start(newFrameCallback, this);
+
+        this->ui->led_val->setText(QString::number(camera->getLed(),'f', 2) + " %");
+        this->ui->gain_val->setText(QString::number(camera->getGain(),'f', 2) + " %");
+        this->ui->exposure_val->setText(QString::number(camera->getExposure(),'f', 2) + " %");
+
     } catch(std::invalid_argument * error){
         QMessageBox::warning(this, "Invalid argument", error->what());
+        delete camera;
+        camera = NULL;
     }
-
-
 }
 
+/**
+ * Callback function for camera. Camera sends frame (one by one) into this method
+ * @brief MainWindow::onNewFrame
+ * @param pFrameData
+ */
 void MainWindow::onNewFrame(const PDense3DFrame pFrameData){
-    if(!_mutex.tryLock(10)) return;
-
-    D3DFrame frame;
-    Size frameSize(pFrameData->duoFrame->width,pFrameData->duoFrame->height);
-    frame.leftImg = cv::Mat(frameSize, CV_8U, pFrameData->duoFrame->leftData);
-    frame.disparity = cv::Mat(frameSize, CV_32F, pFrameData->disparityData);
-    frame.depth = cv::Mat(frameSize, CV_32FC3, pFrameData->depthData);
-
     if(ui->tabWidget->currentIndex() == 0){
-        cvtColor(frame.leftImg, _leftRGB, COLOR_GRAY2BGR);
+        distanceCalculation(pFrameData);
+    }
+    else{
+        depthCalculation(pFrameData);
+    }
+}
+
+/**
+ * Calculating and rendering distance data
+ * @brief MainWindow::distanceCalculation
+ * @param pFrameData frame got from DUO camera
+ */
+void inline MainWindow::distanceCalculation(const PDense3DFrame pFrameData){
+    cv::Size frameSize(pFrameData->duoFrame->width,pFrameData->duoFrame->height);
+
+    for(int i = 0; i < renderingPoints->length(); i++){
+        QSharedPointer<DistancePoint> distancePoint = renderingPoints->at(i);
 
         float distance = 0;
-
-        //multiple measuring points
-        if(ui->multipleMeasuringPoints->isChecked()){
-            for(int i = 0; i <  measuringPointsList.length() ; i++){
-                // distance from depth map
-                if(ui->buildMeasuring->isChecked())
-                    distance = buildInDistance(frame.depth.at<Vec3f>(measuringPointsList.at(i)));
-
-                // calculated distance
-                if(ui->computedMeasuring->isChecked())
-                    distance = computedDistance(frame.disparity.at<float>(measuringPointsList.at(i)));
-
-                distancesList->insert(i,QString::number(distance,'f',2));
-
-                glDistanceWidget->setImage(_leftRGB);
-            }
+        // distance from depth map
+        if(ui->buildMeasuring->isChecked()){
+            cv::Mat depthMat = cv::Mat(frameSize, CV_32FC3, pFrameData->depthData);
+            distance = depthMat.at<cv::Vec3f>(distancePoint->y, distancePoint->x)[2];
+            distance /= 10.0; // normalize to cm
         }
-        //single measuring point
-        else{
-            // distance from depth map
-            if(ui->buildMeasuring->isChecked())
-                distance = buildInDistance(frame.depth.at<Vec3f>(p));
-
-            // calculated distance
-            if(ui->computedMeasuring->isChecked())
-                distance = computedDistance(frame.disparity.at<float>(p));
-
-            distanceQueue->enqueue( cvMatToQImage( _leftRGB ) );
-            emit newDistanceFrame();
+        // calculated distance
+        if(ui->computedMeasuring->isChecked()){
+            cv::Mat disparityMat = cv::Mat(frameSize, CV_32F, pFrameData->disparityData);
+            distance = baseline_mm * focal_length_pixels / disparityMat.at<float>(distancePoint->y, distancePoint->x);
+            distance /= 10.0; // normalize to cm
         }
-        //show distance
-        //ui->depth->setText(QString::number(distance));
 
-    }
-    else if(ui->tabWidget->currentIndex() == 1){
-        int disparities = (camera->getParams().numDisparities * 16);
-        Mat disp8, rgbBDisparity;
-        frame.disparity.convertTo(disp8, CV_8UC1, 255.0 / disparities);
-        cv::cvtColor(disp8, rgbBDisparity, COLOR_GRAY2BGR);
-        //color depth map
-        cv::LUT(rgbBDisparity, colorLut, rgbBDisparity);
-
-        depthQueue->enqueue(cvMatToQImage( rgbBDisparity ));
-        emit newDepthFrame();
-
+        distancePoint->distance = distance;
     }
 
+    cv::Mat leftCamFrame = cv::Mat(frameSize, CV_8U, pFrameData->duoFrame->leftData);
+    QImage frame = QImage(leftCamFrame.data, leftCamFrame.cols, leftCamFrame.rows, QImage::Format_Grayscale8);
 
-    _mutex.unlock();
+    distanceQueue->enqueue(frame);
+    this->ui->frames_count_val->setText(QString::number(distanceQueue->length()));
+    emit newDistanceFrame();
+}
+
+/**
+ * Calculating depth map from disparity map
+ * @brief MainWindow::depthCalculation
+ * @param pFrameData frame from DUO camera
+ */
+void inline MainWindow::depthCalculation(const PDense3DFrame pFrameData){
+    cv::Size frameSize(pFrameData->duoFrame->width,pFrameData->duoFrame->height);
+    cv::Mat disparityMat = cv::Mat(frameSize, CV_32F, pFrameData->disparityData);
+
+    cv::Mat disp8, rgbDisparity;
+    disparityMat.convertTo(disp8, CV_8UC1, 255.0 / disparities);
+    cv::cvtColor(disp8, rgbDisparity, cv::COLOR_GRAY2BGR);
+    //color depth map
+    cv::LUT(rgbDisparity, colorLut, _depthRGB);
+
+    QImage frame = QImage(_depthRGB.data, _depthRGB.cols, _depthRGB.rows, QImage::Format_RGB888);
+    depthQueue->enqueue(frame);
+    emit newDepthFrame();
+}
+
+/**
+ * Event from widget saying it was clicked on it (adding/replacing points)
+ * @brief MainWindow::onMeasuringPointCoordsChanged
+ * @param pos
+ * @param widgetSize
+ */
+void MainWindow::onMeasuringPointCoordsChanged(QPoint pos, QSize widgetSize)
+{
+    // single rendering point
+    if(ui->singleMeasuringPoint->isChecked()){
+        renderingPoints->clear();
+    }
+
+    int frameX = (pos.x() / (double) widgetSize.width()) * CAMERA_WIDTH;
+    int frameY = (pos.y() / (double) widgetSize.height()) * CAMERA_HEIGHT;
+
+    renderingPoints->append(QSharedPointer<DistancePoint>(new DistancePoint(pos, frameX, frameY)));
+}
+
+void MainWindow::on_connectCameraButton_clicked()
+{
+    if(this->camera != NULL){
+        QMessageBox::warning(this, "Camera connected", "DUO Camera is already connected!");
+        return;
+    }
+
+    setUpCamera();
+}
+
+void MainWindow::on_clearPoints_clicked()
+{
+    renderingPoints->clear();
 }
 
 
+void MainWindow::on_ledSlider_valueChanged(int value)
+{
+    camera->setLed(value * 0.1);
+    this->ui->led_val->setText(QString::number(camera->getLed(),'f', 2) + " %");
+}
+
+void MainWindow::on_gainSlider_valueChanged(int value)
+{
+    camera->setGain(value * 0.1);
+    this->ui->gain_val->setText(QString::number(camera->getGain(),'f', 2) + " %");
+}
+
+void MainWindow::on_exposureSlider_valueChanged(int value)
+{
+    camera->setExposure(value * 0.1);
+    this->ui->exposure_val->setText(QString::number(camera->getExposure(),'f', 2) + " %");
+}
+
+void MainWindow::on_swapVerticalCheckbox_clicked(bool checked)
+{
+    camera->setVerticalFlip(checked);
+}
+
+void MainWindow::showAuthorsDialog()
+{
+    QMessageBox msgBox;
+    msgBox.setWindowTitle("Authors");
+    msgBox.setText("Authors:\n"
+                   "Roman Čižmarik, xcizma04 \n"
+                   "Tomáš Mlynarič, xmylna06");
+    msgBox.exec();
+}
+
+/**
+ * Creates UI menu
+ * @brief MainWindow::createMenu
+ */
 void MainWindow::createMenu()
 {
     QAction *closeAct = new QAction(tr("&Close"), this);
@@ -164,128 +233,20 @@ void MainWindow::createMenu()
     helpMenu->addAction(aboutAct);
 }
 
-
-float MainWindow::buildInDistance(Vec3f chro)
-{
-    //cv::Vec3f chro = frame.depth.at<Vec3f>(p);
-    return (chro[2] / 10.0);
-}
-
-float MainWindow::computedDistance(float disparity)
-{
-    return ((baseline_mm * focal_length_pixels / disparity) / 100.0);
-}
-
-
-
-
-
+/**
+  Destructor closes cameras and dense
+ * @brief MainWindow::~MainWindow
+ */
 MainWindow::~MainWindow()
 {
-    //tu to pada pri zavreni okna
-    //    if (camera != NULL)
-    //            delete camera;
-    delete distancesList;
+    if (camera != NULL){
+//        delete camera;
+        // TODO
+    }
+
+
+    delete renderingPoints;
+    delete depthQueue;
+    delete distanceQueue;
     delete ui;
 }
-
-QThread *MainWindow::getMainThread()
-{
-    return qApp->thread();
-}
-
-void MainWindow::onMeasuringPointCoordsChanged(int x, int y)
-{
-    //multiple measuring points
-    if(ui->multipleMeasuringPoints->isChecked()){
-        distancesList->append("");
-        measuringPointsList.append(Point(x, y));
-    }
-    //single measuring point
-    else
-        p = Point(x, y);
-}
-
-void MainWindow::on_ledSlider_valueChanged(int value)
-{
-    camera->setLed(value*0.1);
-}
-
-void MainWindow::on_gainSlider_valueChanged(int value)
-{
-    camera->setGain(value*0.1);
-}
-
-void MainWindow::on_exposureSlider_valueChanged(int value)
-{
-    camera->setExposure(value*0.1);
-}
-
-void MainWindow::on_swapVerticalCheckbox_clicked(bool checked)
-{
-    camera->setVerticalFlip(checked);
-}
-
-void MainWindow::showAuthorsDialog()
-{
-    QMessageBox msgBox;
-    msgBox.setWindowTitle("Authors");
-    msgBox.setText("Authors:\n"
-                   "Roman Čižmarik, xcizma04 \n"
-                   "Tomáš Mlynarič, xmylna06");
-    msgBox.exec();
-}
-
-
-QImage MainWindow::cvMatToQImage( const cv::Mat &inMat )
-{
-    switch ( inMat.type() )
-    {
-    // 8-bit, 4 channel
-    case CV_8UC4:
-    {
-        QImage image( inMat.data, inMat.cols, inMat.rows, inMat.step, QImage::Format_RGB32 );
-
-        return image;
-    }
-
-        // 8-bit, 3 channel
-    case CV_8UC3:
-    {
-        QImage image( inMat.data, inMat.cols, inMat.rows, inMat.step, QImage::Format_RGB888 );
-
-        return image.rgbSwapped();
-    }
-
-        // 8-bit, 1 channel
-    case CV_8UC1:
-    {
-        static QVector<QRgb>  sColorTable;
-
-        // only create our color table once
-        if ( sColorTable.isEmpty() )
-        {
-            for ( int i = 0; i < 256; ++i )
-                sColorTable.push_back( qRgb( i, i, i ) );
-        }
-
-        QImage image( inMat.data, inMat.cols, inMat.rows, inMat.step, QImage::Format_Indexed8 );
-
-        image.setColorTable( sColorTable );
-
-        return image;
-    }
-
-    default:
-        qWarning() << "ASM::cvMatToQImage() - cv::Mat image type not handled in switch:" << inMat.type();
-        break;
-    }
-
-    return QImage();
-}
-
-
-/**
-*   TODO:
-*
-*/

@@ -1,7 +1,7 @@
 #include "glwidget.h"
 #include <QDebug>
 
-GLWidget::GLWidget(QList<QSharedPointer<DistancePoint>> *_distancePointList, QQueue<QImage> *q_, QWidget *parent):
+GLWidget::GLWidget(QList<QSharedPointer<DistancePoint>> *_distancePointList, ThreadSafeQueue<QImage> *q_, QWidget *parent):
     QGLWidget(QGLFormat(QGL::DoubleBuffer),parent),
     distancePointList(_distancePointList),
     imageDistanceQueue(q_),

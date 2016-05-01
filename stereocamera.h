@@ -93,7 +93,9 @@ public:
 
     double getLed(){
         double value;
-        GetDUOLedPWM(duo, &value);
+        if(!GetDUOLedPWM(duo, &value)){
+            qDebug() << "Led false";
+        }
         return value;
     }
 

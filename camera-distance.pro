@@ -53,7 +53,8 @@ HEADERS  += api_keys.h mainwindow.h stereocamera.h \
 	utils.h \
 	api_keys.h \
     glwidget.h \
-    distance_point.h
+    distance_point.h \
+    thread_safe_queue.h
 
 FORMS    += mainwindow.ui
 

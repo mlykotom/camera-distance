@@ -14,12 +14,13 @@
 #include "stereocamera.h"
 #include "glwidget.h"
 #include "distance_point.h"
-
+#include "thread_safe_queue.h"
 
 #define CAMERA_WIDTH 320
 #define CAMERA_HEIGHT 240
 #define CAMERA_FPS 40
 #define CAMERA_BASELINE_MM 30
+#define CAMERA_FOCAL_LENGTH_MM 2
 
 namespace Ui {
 class MainWindow;
@@ -44,8 +45,8 @@ private:
     QMutex _mutex;
 
     QList<QSharedPointer<DistancePoint>> *renderingPoints;
-    QQueue<QImage> *distanceQueue;
-    QQueue<QImage> *depthQueue;
+    ThreadSafeQueue<QImage> *distanceQueue;
+    ThreadSafeQueue<QImage> *depthQueue;
 
     static void CALLBACK newFrameCallback(const PDense3DFrame pFrameData, void *pUserData){
         ((MainWindow *)pUserData)->onNewFrame(pFrameData);

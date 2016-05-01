@@ -6,15 +6,15 @@ MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent),
     ui(new Ui::MainWindow),
     // camera properties for calculated distance
-    focal_length_pixels(2 * 360), // TODO
+    focal_length_pixels(CAMERA_FOCAL_LENGTH_MM * 36),
     baseline_mm(CAMERA_BASELINE_MM)
 {
     ui->setupUi(this);
     this->setWindowTitle("ZPO 2016");
     createMenu();
 
-    distanceQueue = new QQueue<QImage>();
-    depthQueue = new QQueue<QImage>();
+    distanceQueue = new ThreadSafeQueue<QImage>();
+    depthQueue = new ThreadSafeQueue<QImage>();
     renderingPoints = new QList<QSharedPointer<DistancePoint>>();
     // widget for measuring distance
     glDistanceWidget = new GLWidget(renderingPoints, distanceQueue, this);
@@ -98,12 +98,14 @@ void inline MainWindow::distanceCalculation(const PDense3DFrame pFrameData){
         // distance from depth map
         if(ui->buildMeasuring->isChecked()){
             cv::Mat depthMat = cv::Mat(frameSize, CV_32FC3, pFrameData->depthData);
-            distance = depthMat.at<cv::Vec3f>(distancePoint->y, distancePoint->x)[2] / 10.0;
+            distance = depthMat.at<cv::Vec3f>(distancePoint->y, distancePoint->x)[2];
+            distance /= 10.0; // normalize to cm
         }
         // calculated distance
         if(ui->computedMeasuring->isChecked()){
             cv::Mat disparityMat = cv::Mat(frameSize, CV_32F, pFrameData->disparityData);
-            distance = ((baseline_mm * focal_length_pixels / disparityMat.at<float>(distancePoint->y, distancePoint->x)) / 100.0);
+            distance = baseline_mm * focal_length_pixels / disparityMat.at<float>(distancePoint->y, distancePoint->x);
+            distance /= 10.0; // normalize to cm
         }
 
         distancePoint->distance = distance;
@@ -137,6 +139,12 @@ void inline MainWindow::depthCalculation(const PDense3DFrame pFrameData){
     emit newDepthFrame();
 }
 
+/**
+ * Event from widget saying it was clicked on it (adding/replacing points)
+ * @brief MainWindow::onMeasuringPointCoordsChanged
+ * @param pos
+ * @param widgetSize
+ */
 void MainWindow::onMeasuringPointCoordsChanged(QPoint pos, QSize widgetSize)
 {
     // single rendering point

@@ -9,6 +9,7 @@
 #include <QOpenGLFunctions>
 #include <QOpenGLTexture>
 #include "distance_point.h"
+#include "thread_safe_queue.h"
 
 #define FRAME_TIMEOUT_MS 10
 #define RECT_SIZE 10
@@ -18,7 +19,7 @@ class GLWidget : public QGLWidget, protected QOpenGLFunctions
     Q_OBJECT
 
 public:
-    GLWidget(QList<QSharedPointer<DistancePoint>> *_distancePointList, QQueue<QImage> *q_, QWidget *parent = 0);
+    GLWidget(QList<QSharedPointer<DistancePoint>> *_distancePointList, ThreadSafeQueue<QImage> *q_, QWidget *parent = 0);
 
     QSize minimumSizeHint() const;
     QSize sizeHint() const;
@@ -43,7 +44,7 @@ private:
     void setupViewPort(int width, int height);
 
     QList<QSharedPointer<DistancePoint>> *distancePointList;
-    QQueue<QImage> *imageDistanceQueue;
+    ThreadSafeQueue<QImage> *imageDistanceQueue;
 
 
     QOpenGLTexture* texture;

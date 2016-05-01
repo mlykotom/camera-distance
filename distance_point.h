@@ -7,7 +7,7 @@
 
 struct DistancePoint{
     static const int rectSize = 10;
-    static const int fontSize = 15;
+    static const int fontSize = 10;
 
     int x;
     int y;
@@ -28,7 +28,7 @@ struct DistancePoint{
         QPen pen = painter->pen();
         painter->setPen(Qt::red);
         painter->drawRect(rectangle);
-        painter->drawText(widgetPosition.x(), widgetPosition.y() + rectangle.height() + fontSize, QString::number(distance, 'f', 2));
+        painter->drawText(widgetPosition.x() - rectangle.width() - fontSize, widgetPosition.y() + rectangle.height() + fontSize, QString::number(distance, 'f', 2));
         painter->setPen(pen);
     }
 };

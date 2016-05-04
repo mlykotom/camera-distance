@@ -11,10 +11,10 @@ struct DistancePoint{
 
     int x;
     int y;
+    float distance;
 
     QPoint widgetPosition;
     QRect rectangle;
-    float distance;
 
     DistancePoint(QPoint _widgetPosition, int x, int y): distance(0){
         this->x = x;

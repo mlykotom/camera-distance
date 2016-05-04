@@ -1,6 +1,7 @@
 #include "mainwindow.h"
 #include "ui_mainwindow.h"
 #include "utils.h"
+#include <QtMath>
 
 MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent),
@@ -103,6 +104,7 @@ void inline MainWindow::distanceCalculation(const PDense3DFrame pFrameData){
         }
         // calculated distance
         if(ui->computedMeasuring->isChecked()){
+            // TODO check it, does not count correctly
             cv::Mat disparityMat = cv::Mat(frameSize, CV_32F, pFrameData->disparityData);
             distance = baseline_mm * focal_length_pixels / disparityMat.at<float>(distancePoint->y, distancePoint->x);
             distance /= 10.0; // normalize to cm
@@ -115,7 +117,22 @@ void inline MainWindow::distanceCalculation(const PDense3DFrame pFrameData){
     QImage frame = QImage(leftCamFrame.data, leftCamFrame.cols, leftCamFrame.rows, QImage::Format_Grayscale8);
 
     distanceQueue->enqueue(frame);
-    this->ui->frames_count_val->setText(QString::number(distanceQueue->length()));
+
+    if(renderingPoints->length() >= 2){
+        QSharedPointer<DistancePoint> p1 = renderingPoints->at(0);
+        QSharedPointer<DistancePoint> p2 = renderingPoints->at(1);
+
+        float a,b,c;
+        a = p2->x - p1->x;
+        b = p2->y - p1->y;
+        c = p2->distance - p1->distance;
+
+        float velikost = qSqrt(qPow(a, 2) + qPow(b, 2) + qPow(c, 2));
+
+        this->ui->frames_count_val->setText(QString::number(velikost, 'f', 2));
+    }
+
+//    this->ui->frames_count_val->setText(QString::number(distanceQueue->length()));
     emit newDistanceFrame();
 }
 

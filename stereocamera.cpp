@@ -62,14 +62,14 @@ void StereoCamera::setParams(){
 }
 
 StereoCamera::~StereoCamera(){
-    if(duo != NULL){
-        StopDUO(duo);
-        CloseDUO(duo);
-    }
-
     if(dense != NULL){
         Dense3DStop(dense);
         Dense3DClose(dense);
+    }
+
+    if(duo != NULL){
+        StopDUO(duo);
+        CloseDUO(duo);
     }
 }
 

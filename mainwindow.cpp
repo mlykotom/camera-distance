@@ -75,12 +75,20 @@ void MainWindow::setUpCamera()
  * @param pFrameData
  */
 void MainWindow::onNewFrame(const PDense3DFrame pFrameData){
+    _mutex.lock();
+    if(ui == NULL) {
+        _mutex.unlock();
+        return;
+    }
+
     if(ui->tabWidget->currentIndex() == 0){
         distanceCalculation(pFrameData);
     }
     else{
         depthCalculation(pFrameData);
     }
+
+    _mutex.unlock();
 }
 
 /**
@@ -104,7 +112,7 @@ void inline MainWindow::distanceCalculation(const PDense3DFrame pFrameData){
         // calculated distance
         if(ui->computedMeasuring->isChecked()){
             cv::Mat disparityMat = cv::Mat(frameSize, CV_32F, pFrameData->disparityData);
-            distance = baseline_mm * focal_length_pixels / disparityMat.at<float>(distancePoint->y, distancePoint->x);
+            distance = 2* baseline_mm * focal_length_pixels / disparityMat.at<float>(distancePoint->y, distancePoint->x);
             distance /= 10.0; // normalize to cm
         }
 
@@ -239,14 +247,13 @@ void MainWindow::createMenu()
  */
 MainWindow::~MainWindow()
 {
-    if (camera != NULL){
-//        delete camera;
-        // TODO
-    }
+    _mutex.lock();
 
+    delete ui;
+    ui = NULL;
 
     delete renderingPoints;
     delete depthQueue;
     delete distanceQueue;
-    delete ui;
+    _mutex.unlock();
 }

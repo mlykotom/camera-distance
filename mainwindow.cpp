@@ -6,8 +6,9 @@ MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent),
     ui(new Ui::MainWindow),
     // camera properties for calculated distance
-    focal_length_pixels(CAMERA_FOCAL_LENGTH_MM * 36),
-    baseline_mm(CAMERA_BASELINE_MM)
+    focal_length(CAMERA_FOCAL_LENGTH_MM),
+    baseline_mm(CAMERA_BASELINE_MM),
+    frameThread(NULL)
 {
     ui->setupUi(this);
     this->setWindowTitle("ZPO 2016");
@@ -75,11 +76,7 @@ void MainWindow::setUpCamera()
  * @param pFrameData
  */
 void MainWindow::onNewFrame(const PDense3DFrame pFrameData){
-    _mutex.lock();
-    if(ui == NULL) {
-        _mutex.unlock();
-        return;
-    }
+    if(!_mutex.tryLock(10)) return;
 
     if(ui->tabWidget->currentIndex() == 0){
         distanceCalculation(pFrameData);
@@ -106,24 +103,26 @@ void inline MainWindow::distanceCalculation(const PDense3DFrame pFrameData){
         // distance from depth map
         if(ui->buildMeasuring->isChecked()){
             cv::Mat depthMat = cv::Mat(frameSize, CV_32FC3, pFrameData->depthData);
-            distance = depthMat.at<cv::Vec3f>(distancePoint->y, distancePoint->x)[2];
+            cv::Vec3f point = depthMat.at<cv::Vec3f>(distancePoint->y, distancePoint->x);
+            distance = point[2];
             distance /= 10.0; // normalize to cm
         }
         // calculated distance
         if(ui->computedMeasuring->isChecked()){
             cv::Mat disparityMat = cv::Mat(frameSize, CV_32F, pFrameData->disparityData);
-            distance = 2* baseline_mm * focal_length_pixels / disparityMat.at<float>(distancePoint->y, distancePoint->x);
-            distance /= 10.0; // normalize to cm
+            distance = baseline_mm * focal_length / disparityMat.at<float>(distancePoint->y, distancePoint->x);
+            distance *= 10.0; // normalize to cm
         }
 
         distancePoint->distance = distance;
+//        if(distance < distancePoint->distance - 1 || distance > distancePoint->distance + 1){
+//        }
     }
 
     cv::Mat leftCamFrame = cv::Mat(frameSize, CV_8U, pFrameData->duoFrame->leftData);
     QImage frame = QImage(leftCamFrame.data, leftCamFrame.cols, leftCamFrame.rows, QImage::Format_Grayscale8);
 
     distanceQueue->enqueue(frame);
-    this->ui->frames_count_val->setText(QString::number(distanceQueue->length()));
     emit newDistanceFrame();
 }
 
@@ -180,7 +179,6 @@ void MainWindow::on_clearPoints_clicked()
 {
     renderingPoints->clear();
 }
-
 
 void MainWindow::on_ledSlider_valueChanged(int value)
 {
@@ -248,12 +246,11 @@ void MainWindow::createMenu()
 MainWindow::~MainWindow()
 {
     _mutex.lock();
+    delete camera;
+    _mutex.unlock();
 
     delete ui;
-    ui = NULL;
-
     delete renderingPoints;
     delete depthQueue;
     delete distanceQueue;
-    _mutex.unlock();
 }

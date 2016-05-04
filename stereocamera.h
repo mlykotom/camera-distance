@@ -26,15 +26,11 @@ public:
     ~StereoCamera();
 
     void open();
-
-    // TODO
+    void stop();
     void setParams();
 
-    Dense3DParams getParams(){
-        return params;
-    }
+    Dense3DParams getParams();
 
-    //prerobit na connect
     void start(Dense3DFrameCallback callback, void *userData){
         Dense3DStart(dense, callback, userData);
     }
@@ -47,57 +43,20 @@ public:
         return dense;
     }
 
-    void setExposure(double value) {
-        SetDUOExposure(duo, value);
-    }
+    void setExposure(double value);
+    double getExposure();
 
-    double getExposure(){
-        double value;
-        GetDUOExposure(duo, &value);
-        return value;
-    }
+    void setVerticalFlip(bool isSet);
+    bool getVerticalFlip();
 
-    void setVerticalFlip(bool isSet) {
-        SetDUOVFlip(duo, isSet);
-    }
+    void setUndistort(bool isSet);
+    bool getUndistort();
 
-    bool getVerticalFlip(){
-        int value = false;
-        GetDUOVFlip(duo, &value);
-        return value;
-    }
+    void setGain(double value);
+    double getGain();
 
-    void setUndistort(bool isSet) {
-        SetDUOUndistort(duo, isSet);
-    }
-
-    bool getUndistort(){
-        bool value = false;
-        GetDUOUndistort(duo, &value);
-        return value;
-    }
-
-    void setGain(double value) {
-        SetDUOGain(duo, value);
-    }
-
-    double getGain(){
-        double value;
-        GetDUOGain(duo, &value);
-        return value;
-    }
-
-    void setLed(double value) {
-        SetDUOLedPWM(duo, value);
-    }
-
-    double getLed(){
-        double value;
-        if(!GetDUOLedPWM(duo, &value)){
-            qDebug() << "Led false";
-        }
-        return value;
-    }
+    void setLed(double value);
+    double getLed();
 
     void printInfo();
 };

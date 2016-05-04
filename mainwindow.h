@@ -20,7 +20,7 @@
 #define CAMERA_HEIGHT 240
 #define CAMERA_FPS 40
 #define CAMERA_BASELINE_MM 30
-#define CAMERA_FOCAL_LENGTH_MM 2
+#define CAMERA_FOCAL_LENGTH_MM 2.05
 
 namespace Ui {
 class MainWindow;
@@ -36,13 +36,14 @@ private:
     cv::Mat _leftRGB, _depthRGB;
     cv::Mat colorLut;
 
-    float focal_length_pixels;
+    float focal_length;
     float baseline_mm;
     int disparities;
 
     GLWidget *glDistanceWidget;
     GLWidget *glDepthWidget;
     QMutex _mutex;
+    QThread *frameThread;
 
     QList<QSharedPointer<DistancePoint>> *renderingPoints;
     ThreadSafeQueue<QImage> *distanceQueue;

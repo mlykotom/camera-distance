@@ -44,12 +44,12 @@ void StereoCamera::open(){
 void StereoCamera::setParams(){
     params.scale = 0;
     params.mode = 3;
-    params.sadWindowSize = 1;
     params.numDisparities = 2;
-    params.preFilterCap = 0;
-    params.uniqenessRatio = 72;
-    params.speckleWindowSize = 41;
-    params.speckleRange = 32;
+    params.sadWindowSize = 6;
+    params.preFilterCap = 28;
+    params.uniqenessRatio = 27;
+    params.speckleWindowSize = 52;
+    params.speckleRange = 14;
 
     if (!SetDense3Params(dense, params)) {
         Dense3DClose(dense);
@@ -61,16 +61,80 @@ void StereoCamera::setParams(){
     GetDUOFrameDimension(duo, &w, &h);
 }
 
-StereoCamera::~StereoCamera(){
-    if(dense != NULL){
-        Dense3DStop(dense);
-        Dense3DClose(dense);
-    }
+Dense3DParams StereoCamera::getParams()
+{
+    return params;
+}
 
-    if(duo != NULL){
-        StopDUO(duo);
-        CloseDUO(duo);
-    }
+void StereoCamera::setExposure(double value)
+{
+    SetDUOExposure(duo, value);
+}
+
+double StereoCamera::getExposure()
+{
+    double value;
+    GetDUOExposure(duo, &value);
+    return value;
+}
+
+void StereoCamera::setVerticalFlip(bool isSet)
+{
+    SetDUOVFlip(duo, isSet);
+}
+
+bool StereoCamera::getVerticalFlip()
+{
+    int value = false;
+    GetDUOVFlip(duo, &value);
+    return value;
+}
+
+void StereoCamera::setUndistort(bool isSet)
+{
+    SetDUOUndistort(duo, isSet);
+}
+
+bool StereoCamera::getUndistort()
+{
+    bool value = false;
+    GetDUOUndistort(duo, &value);
+    return value;
+}
+
+void StereoCamera::setGain(double value)
+{
+    SetDUOGain(duo, value);
+}
+
+double StereoCamera::getGain()
+{
+    double value;
+    GetDUOGain(duo, &value);
+    return value;
+}
+
+void StereoCamera::setLed(double value)
+{
+    SetDUOLedPWM(duo, value);
+}
+
+double StereoCamera::getLed()
+{
+    double value;
+    !GetDUOLedPWM(duo, &value);
+    return value;
+}
+
+void StereoCamera::stop(){
+    StopDUO(duo);
+    Dense3DStop(dense);
+}
+
+StereoCamera::~StereoCamera(){
+    this->stop();
+    CloseDUO(duo);
+    Dense3DClose(dense);
 }
 
 void StereoCamera::printInfo(){

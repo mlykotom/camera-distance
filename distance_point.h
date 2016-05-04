@@ -21,7 +21,6 @@ struct DistancePoint{
         this->y = y;
         this->widgetPosition = _widgetPosition;
         rectangle = QRect(_widgetPosition.x() - rectSize / 2, _widgetPosition.y() - rectSize / 2, rectSize, rectSize);
-
     }
 
     void render(QPainter *painter){

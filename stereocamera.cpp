@@ -45,7 +45,7 @@ void StereoCamera::setParams(){
     params.scale = 0;
     params.mode = 3;
     params.numDisparities = 2;
-    params.sadWindowSize = 6;
+    params.sadWindowSize = 5;
     params.preFilterCap = 28;
     params.uniqenessRatio = 27;
     params.speckleWindowSize = 52;

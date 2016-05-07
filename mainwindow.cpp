@@ -115,8 +115,6 @@ void inline MainWindow::distanceCalculation(const PDense3DFrame pFrameData){
         }
 
         distancePoint->distance = distance;
-//        if(distance < distancePoint->distance - 1 || distance > distancePoint->distance + 1){
-//        }
     }
 
     cv::Mat leftCamFrame = cv::Mat(frameSize, CV_8U, pFrameData->duoFrame->leftData);
@@ -136,6 +134,7 @@ void inline MainWindow::depthCalculation(const PDense3DFrame pFrameData){
     cv::Mat disparityMat = cv::Mat(frameSize, CV_32F, pFrameData->disparityData);
 
     cv::Mat disp8, rgbDisparity;
+
     disparityMat.convertTo(disp8, CV_8UC1, 255.0 / disparities);
     cv::cvtColor(disp8, rgbDisparity, cv::COLOR_GRAY2BGR);
     //color depth map
@@ -162,7 +161,7 @@ void MainWindow::onMeasuringPointCoordsChanged(QPoint pos, QSize widgetSize)
     int frameX = (pos.x() / (double) widgetSize.width()) * CAMERA_WIDTH;
     int frameY = (pos.y() / (double) widgetSize.height()) * CAMERA_HEIGHT;
 
-    renderingPoints->append(QSharedPointer<DistancePoint>(new DistancePoint(pos, frameX, frameY)));
+    renderingPoints->append(QSharedPointer<DistancePoint>(new DistancePoint(pos, widgetSize, frameX, frameY)));
 }
 
 void MainWindow::on_connectCameraButton_clicked()

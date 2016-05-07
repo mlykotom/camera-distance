@@ -13,14 +13,32 @@ struct DistancePoint{
     int y;
 
     QPoint widgetPosition;
+    QSize widgetSize;
     QRect rectangle;
     float distance;
 
-    DistancePoint(QPoint _widgetPosition, int x, int y): distance(0){
+    DistancePoint(QPoint _widgetPosition, QSize _widgetSize, int x, int y): distance(0){
         this->x = x;
         this->y = y;
+        this->widgetSize = _widgetSize;
         this->widgetPosition = _widgetPosition;
-        rectangle = QRect(_widgetPosition.x() - rectSize / 2, _widgetPosition.y() - rectSize / 2, rectSize, rectSize);
+        rectangle = QRect();
+        updateRectPosition();
+    }
+
+    void updateRectPosition(){
+        rectangle.setLeft(widgetPosition.x() - rectSize / 2);
+        rectangle.setTop(widgetPosition.y() - rectSize / 2);
+        rectangle.setWidth(rectSize);
+        rectangle.setHeight(rectSize);
+    }
+
+    void updateWidgetPos(int canvasWidth, int canvasHeight){
+        int newX = canvasWidth * widgetPosition.x() / widgetSize.width();
+        int newY = canvasHeight * widgetPosition.y() / widgetSize.height();
+        this->widgetPosition = QPoint(newX, newY);
+        this->widgetSize = QSize(canvasWidth, canvasHeight);
+        updateRectPosition();
     }
 
     void render(QPainter *painter){

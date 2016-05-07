@@ -41,6 +41,9 @@ private:
     GLuint background;
     QMutex _mutex;
 
+    int viewWidth;
+    int viewHeight;
+
     void setupViewPort(int width, int height);
 
     QList<QSharedPointer<DistancePoint>> *distancePointList;

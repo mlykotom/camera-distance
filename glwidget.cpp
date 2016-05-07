@@ -10,6 +10,9 @@ GLWidget::GLWidget(QList<QSharedPointer<DistancePoint>> *_distancePointList, Thr
     _image = QImage(QSize(320,240), QImage::Format_RGB888);
     _image.fill(Qt::white);
 
+    viewHeight = height();
+    viewWidth = width();
+
     setAutoFillBackground(false);
 }
 
@@ -25,7 +28,7 @@ QSize GLWidget::sizeHint() const
 
 void GLWidget::mousePressEvent(QMouseEvent *e)
 {
-    emit measuringPointCoordsChanged(e->pos(), this->size());
+    emit measuringPointCoordsChanged(e->pos(), QSize(viewWidth, viewHeight));
 }
 
 /**
@@ -120,6 +123,8 @@ void GLWidget::drawFramePicture(){
  */
 void GLWidget::resizeGL(int width, int height)
 {
+    viewHeight = height;
+    viewWidth = width;
     setupViewPort(width, height);
 }
 
@@ -133,6 +138,13 @@ void GLWidget::setupViewPort(int width, int height)
 {
     int side = qMin(width, height);
     glViewport((width - side) / 2, (height - side) / 2, side, side);
+
+    if(distancePointList != NULL){
+        for(int i = 0; i < distancePointList->length(); i++){
+            QSharedPointer<DistancePoint> point = distancePointList->at(i);
+            point->updateWidgetPos(width, height);
+        }
+    }
 }
 
 

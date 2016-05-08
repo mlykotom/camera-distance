@@ -123,6 +123,13 @@
         <item row="0" column="0">
          <layout class="QGridLayout" name="glDepthLayout"/>
         </item>
+        <item row="1" column="0">
+         <widget class="QCheckBox" name="colorizeDepth">
+          <property name="text">
+           <string>Colorized depth map</string>
+          </property>
+         </widget>
+        </item>
        </layout>
       </widget>
      </widget>
@@ -131,13 +138,57 @@
      <layout class="QHBoxLayout" name="horizontalLayout">
       <item>
        <layout class="QGridLayout" name="gridLayout_6">
-        <item row="0" column="0" colspan="4">
+        <item row="0" column="0" colspan="2">
          <widget class="QCheckBox" name="swapVerticalCheckbox">
           <property name="text">
            <string>Swap vertical</string>
           </property>
           <property name="checked">
            <bool>false</bool>
+          </property>
+         </widget>
+        </item>
+        <item row="0" column="2">
+         <widget class="QCheckBox" name="pauseRendering">
+          <property name="text">
+           <string>Pause rendering</string>
+          </property>
+         </widget>
+        </item>
+        <item row="2" column="0">
+         <widget class="QLabel" name="gain_title">
+          <property name="text">
+           <string>Gain</string>
+          </property>
+         </widget>
+        </item>
+        <item row="3" column="3">
+         <widget class="QLabel" name="exposure_val">
+          <property name="text">
+           <string/>
+          </property>
+         </widget>
+        </item>
+        <item row="2" column="1">
+         <spacer name="horizontalSpacer">
+          <property name="orientation">
+           <enum>Qt::Horizontal</enum>
+          </property>
+          <property name="sizeType">
+           <enum>QSizePolicy::Minimum</enum>
+          </property>
+          <property name="sizeHint" stdset="0">
+           <size>
+            <width>40</width>
+            <height>20</height>
+           </size>
+          </property>
+         </spacer>
+        </item>
+        <item row="1" column="3">
+         <widget class="QLabel" name="led_val">
+          <property name="text">
+           <string/>
           </property>
          </widget>
         </item>
@@ -181,29 +232,6 @@
           </property>
          </widget>
         </item>
-        <item row="1" column="2">
-         <widget class="QSlider" name="ledSlider">
-          <property name="maximum">
-           <number>1000</number>
-          </property>
-          <property name="singleStep">
-           <number>1</number>
-          </property>
-          <property name="value">
-           <number>300</number>
-          </property>
-          <property name="orientation">
-           <enum>Qt::Horizontal</enum>
-          </property>
-         </widget>
-        </item>
-        <item row="2" column="0">
-         <widget class="QLabel" name="gain_title">
-          <property name="text">
-           <string>Gain</string>
-          </property>
-         </widget>
-        </item>
         <item row="3" column="2">
          <widget class="QSlider" name="exposureSlider">
           <property name="maximum">
@@ -223,27 +251,26 @@
           </property>
          </widget>
         </item>
-        <item row="3" column="3">
-         <widget class="QLabel" name="exposure_val">
-          <property name="text">
-           <string/>
+        <item row="1" column="2">
+         <widget class="QSlider" name="ledSlider">
+          <property name="maximum">
+           <number>1000</number>
           </property>
-         </widget>
-        </item>
-        <item row="1" column="3">
-         <widget class="QLabel" name="led_val">
-          <property name="text">
-           <string/>
+          <property name="singleStep">
+           <number>1</number>
           </property>
-         </widget>
-        </item>
-        <item row="2" column="1">
-         <spacer name="horizontalSpacer">
+          <property name="value">
+           <number>300</number>
+          </property>
           <property name="orientation">
            <enum>Qt::Horizontal</enum>
           </property>
-          <property name="sizeType">
-           <enum>QSizePolicy::Minimum</enum>
+         </widget>
+        </item>
+        <item row="2" column="4">
+         <spacer name="horizontalSpacer_2">
+          <property name="orientation">
+           <enum>Qt::Horizontal</enum>
           </property>
           <property name="sizeHint" stdset="0">
            <size>
@@ -254,22 +281,6 @@
          </spacer>
         </item>
        </layout>
-      </item>
-      <item>
-       <spacer name="horizontalSpacer_2">
-        <property name="orientation">
-         <enum>Qt::Horizontal</enum>
-        </property>
-        <property name="sizeType">
-         <enum>QSizePolicy::MinimumExpanding</enum>
-        </property>
-        <property name="sizeHint" stdset="0">
-         <size>
-          <width>40</width>
-          <height>20</height>
-         </size>
-        </property>
-       </spacer>
       </item>
       <item>
        <layout class="QVBoxLayout" name="verticalLayout_3">

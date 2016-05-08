@@ -44,12 +44,20 @@ void StereoCamera::open(){
 void StereoCamera::setParams(){
     params.scale = 0;
     params.mode = 3;
-    params.numDisparities = 2;
+    params.numDisparities = 3;
+//    params.sadWindowSize = 2;
+//    params.preFilterCap = 1;
+//    params.uniqenessRatio = 1;
+//    params.speckleWindowSize = 0;
+//    params.speckleRange = 0;
+
+
     params.sadWindowSize = 5;
     params.preFilterCap = 28;
     params.uniqenessRatio = 27;
     params.speckleWindowSize = 52;
     params.speckleRange = 14;
+
 
     if (!SetDense3Params(dense, params)) {
         Dense3DClose(dense);

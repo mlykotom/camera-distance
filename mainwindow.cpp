@@ -33,7 +33,7 @@ MainWindow::MainWindow(QWidget *parent) :
     connect(this,SIGNAL(newDepthFrame()), glDepthWidget, SLOT(onNewFrame()));
 
     // connect and setup camera
-   setUpCamera();
+    setUpCamera();
 }
 
 /**
@@ -55,10 +55,11 @@ void MainWindow::setUpCamera()
         camera->setGain(34);
         camera->setExposure(45);
         camera->setUndistort(true);
-        camera->setVerticalFlip(true);
+        camera->setVerticalFlip(false);
 
         camera->start(newFrameCallback, this);
 
+        this->ui->swapVerticalCheckbox->setChecked(camera->getVerticalFlip());
         this->ui->led_val->setText(QString::number(camera->getLed(),'f', 2) + " %");
         this->ui->gain_val->setText(QString::number(camera->getGain(),'f', 2) + " %");
         this->ui->exposure_val->setText(QString::number(camera->getExposure(),'f', 2) + " %");
@@ -76,6 +77,8 @@ void MainWindow::setUpCamera()
  * @param pFrameData
  */
 void MainWindow::onNewFrame(const PDense3DFrame pFrameData){
+    if(ui != NULL && ui->pauseRendering->isChecked()) return;
+
     if(!_mutex.tryLock(10)) return;
 
     if(ui->tabWidget->currentIndex() == 0){
@@ -136,9 +139,11 @@ void inline MainWindow::depthCalculation(const PDense3DFrame pFrameData){
     cv::Mat disp8, rgbDisparity;
 
     disparityMat.convertTo(disp8, CV_8UC1, 255.0 / disparities);
-    cv::cvtColor(disp8, rgbDisparity, cv::COLOR_GRAY2BGR);
-    //color depth map
-    cv::LUT(rgbDisparity, colorLut, _depthRGB);
+    cv::cvtColor(disp8, _depthRGB, cv::COLOR_GRAY2BGR);
+    if(ui->colorizeDepth->isChecked()){
+        //color depth map
+        cv::LUT(_depthRGB, colorLut, _depthRGB);
+    }
 
     QImage frame = QImage(_depthRGB.data, _depthRGB.cols, _depthRGB.rows, QImage::Format_RGB888);
     depthQueue->enqueue(frame);
@@ -249,6 +254,7 @@ MainWindow::~MainWindow()
     _mutex.unlock();
 
     delete ui;
+    ui = NULL;
     delete renderingPoints;
     delete depthQueue;
     delete distanceQueue;

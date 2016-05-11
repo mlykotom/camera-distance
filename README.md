@@ -1,6 +1,10 @@
--------------- ZPO 2016 ---------------------
------ Mereni vzdalenosti stereokamerou ------
----------------------------------------------
-- Roman Cizmarik | xcizma04@stud.fit.vutbr.cz
-- Tomas Mlynaric | xmlyna06@stud.fit.vutbr.cz
----------------------------------------------
+#Computing distance from Stereo Camera
+
+Project for FIT BUT, course ZPO - Computer vision
+
+Usage:
+  DUO 3D Camera - https://duo3d.com/
+
+Authors:
+- Roman Cizmarik 
+- Tomas Mlynaric 
